@@ -1,6 +1,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { TrajGenParams, TrajGroup, GeneratedTrajectory } from '../types';
 import { simulateShot, SIM_MAX_TIME, SIM_DT, enumerateDxValues, resolveMagnusPower, goalPlaneSegment, formatMoeBounds, formatSpeedMoeBounds, lowestSpeedTrajectoryForGroup, type SimPoint, type TrajectoryMoe } from '../simulation';
+import { button, overlay, plotPalette } from '../styles/theme';
+import { useThemeMode } from '../styles/themeMode';
 
 interface Props {
   params: TrajGenParams;
@@ -52,10 +54,6 @@ interface CanvasTooltip {
 
 const INIT_ZOOM = 80;
 const HIT_THRESHOLD_PX = 8;
-const TRAJ_COLOR = 'rgba(59,130,246,0.3)';
-const TRAJ_HOVER_COLOR = '#93c5fd';
-const TRAJ_MAX_MOE_COLOR = 'rgba(52, 211, 153, 0.85)';
-const TRAJ_LOWEST_SPEED_COLOR = '#ffffff';
 
 type OptimalArc = 'low' | 'high';
 
@@ -158,12 +156,20 @@ export default function TrajectoryGenCanvas({
     return [sx, sy];
   }
 
+  const themeMode = useThemeMode();
+
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const maybeCtx = canvas.getContext('2d');
     if (!maybeCtx) return;
     const ctx = maybeCtx;
+
+    const plot = plotPalette(themeMode);
+    const TRAJ_COLOR = plot.candidate;
+    const TRAJ_HOVER_COLOR = plot.candidateHovered;
+    const TRAJ_MAX_MOE_COLOR = plot.optimal;
+    const TRAJ_LOWEST_SPEED_COLOR = plot.lowestSpeed;
 
     const dpr = window.devicePixelRatio || 1;
     const cssW = canvas.clientWidth;
@@ -177,6 +183,8 @@ export default function TrajectoryGenCanvas({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const view = viewRef.current;
     ctx.clearRect(0, 0, cssW, cssH);
+    ctx.fillStyle = plot.background;
+    ctx.fillRect(0, 0, cssW, cssH);
 
     function toS(wx: number, wy: number): [number, number] {
       return worldToCanvas(wx, wy, view, cssH);
@@ -193,8 +201,8 @@ export default function TrajectoryGenCanvas({
     const fineSpacing = coarseSpacing / 10;
     const finePxGap = fineSpacing * view.zoom;
 
-    function drawGridLines(spacing: number, alpha: number) {
-      ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+    function drawGridLines(spacing: number, color: string) {
+      ctx.strokeStyle = color;
       ctx.lineWidth = 1;
       const x0 = Math.ceil(worldXMin / spacing) * spacing;
       const y0 = Math.ceil(worldYMin / spacing) * spacing;
@@ -208,11 +216,11 @@ export default function TrajectoryGenCanvas({
       }
     }
 
-    if (finePxGap >= minPxGap) drawGridLines(fineSpacing, 0.04);
-    drawGridLines(coarseSpacing, 0.10);
+    if (finePxGap >= minPxGap) drawGridLines(fineSpacing, plot.grid);
+    drawGridLines(coarseSpacing, plot.gridStrong);
 
     const [, groundY] = toS(0, 0);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = plot.gridStrong;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(cssW, groundY); ctx.stroke();
@@ -227,7 +235,7 @@ export default function TrajectoryGenCanvas({
       const [lineLeftX, lineY] = toS(dxValues[0], goalDy);
       const [lineRightX] = toS(dxValues[dxValues.length - 1], goalDy);
 
-      ctx.strokeStyle = '#34d399';
+      ctx.strokeStyle = plot.optimal;
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
       ctx.beginPath();
@@ -241,17 +249,17 @@ export default function TrajectoryGenCanvas({
         const [dotX, dotY] = toS(dx, goalDy);
         ctx.beginPath();
         ctx.arc(dotX, dotY, isSelected ? 5 : 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = isSelected ? '#6ee7b7' : '#34d399';
+        ctx.fillStyle = isSelected ? plot.optimalSelected : plot.optimal;
         ctx.fill();
         if (isSelected) {
-          ctx.strokeStyle = '#a7f3d0';
+          ctx.strokeStyle = plot.optimalPoint;
           ctx.lineWidth = 1.5;
           ctx.stroke();
         }
       }
 
       const [midSx] = toS((dxValues[0] + dxValues[dxValues.length - 1]) / 2, goalDy);
-      ctx.fillStyle = 'rgba(156,163,175,0.6)';
+      ctx.fillStyle = plot.axisLabel;
       ctx.font = '11px system-ui';
       ctx.textAlign = 'center';
       ctx.textBaseline = goalDy >= 0 ? 'bottom' : 'top';
@@ -267,7 +275,7 @@ export default function TrajectoryGenCanvas({
       if (Math.abs(goalDy) > 0.01) {
         const [rx] = toS(0, 0);
         const [, gyBase] = toS(0, goalDy);
-        ctx.strokeStyle = 'rgba(100,100,100,0.25)';
+        ctx.strokeStyle = plot.grid;
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 5]);
         ctx.beginPath();
@@ -276,7 +284,7 @@ export default function TrajectoryGenCanvas({
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.fillStyle = 'rgba(156,163,175,0.6)';
+        ctx.fillStyle = plot.axisLabel;
         ctx.font = '11px system-ui';
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
@@ -297,7 +305,7 @@ export default function TrajectoryGenCanvas({
         const seg = goalPlaneSegment(g.dx, g.dy, half, params.goalPlaneAngleDeg);
         const [x1, y1] = toS(seg.x1, seg.y1);
         const [x2, y2] = toS(seg.x2, seg.y2);
-        ctx.strokeStyle = isSelected ? 'rgba(251, 191, 36, 0.95)' : 'rgba(251, 191, 36, 0.55)';
+        ctx.strokeStyle = isSelected ? plot.goalSelected : plot.goal;
         ctx.lineWidth = isSelected ? 3 : 2;
         ctx.lineCap = 'round';
         ctx.beginPath();
@@ -418,18 +426,18 @@ export default function TrajectoryGenCanvas({
     const [rdx, rdy] = toS(0, 0);
     ctx.beginPath();
     ctx.arc(rdx, rdy, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#60a5fa';
+    ctx.fillStyle = plot.candidateHovered;
     ctx.fill();
-    ctx.strokeStyle = '#93c5fd';
+    ctx.strokeStyle = plot.seriesPrimaryAlt;
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    ctx.fillStyle = '#93c5fd';
+    ctx.fillStyle = plot.seriesPrimaryAlt;
     ctx.font = 'bold 11px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText('exit position', rdx, rdy + 8);
-  }, [params, groups, selectedGroupId, hoveredId, showAll, showAllOptimalTrajectories, showOptimalTrajectories, showLowestSpeedTrajectories, bestMoeTrajIds]);
+  }, [params, groups, selectedGroupId, hoveredId, showAll, showAllOptimalTrajectories, showOptimalTrajectories, showLowestSpeedTrajectories, bestMoeTrajIds, themeMode]);
 
   useEffect(() => { draw(); }, [draw]);
 
@@ -587,24 +595,24 @@ export default function TrajectoryGenCanvas({
       {optimalDialog && (
         <div
           data-context-menu
-          className="fixed z-50 min-w-[14rem] rounded-md border border-gray-600 bg-gray-900 p-3 text-sm text-gray-200 shadow-xl"
+          className={`${overlay.popover} min-w-[14rem] text-sm`}
           style={{ left: optimalDialog.x, top: optimalDialog.y }}
         >
-          <div className="mb-2 font-medium text-gray-100">
+          <div className="mb-2 font-medium text-content">
             {optimalDialog.alreadyArc
               ? 'Make optimal'
               : `Make optimal ${optimalDialog.arc === 'low' ? 'low arc' : 'high arc'}`}
           </div>
           {optimalDialog.alreadyArc ? (
             <>
-              <div className="mb-3 text-xs text-gray-400">
+              <div className="mb-3 text-xs text-content-subtle">
                 Trajectory is already {optimalDialog.alreadyArc === 'low' ? 'low arc' : 'high arc'} optimal.
                 Cannot change.
               </div>
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="h-7 px-3 rounded bg-gray-800 text-xs text-gray-200 hover:bg-gray-700"
+                  className={`${button.secondary} ${button.compact}`}
                   onClick={() => setOptimalDialog(null)}
                 >
                   Close
@@ -616,14 +624,14 @@ export default function TrajectoryGenCanvas({
               <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  className="h-7 px-3 rounded bg-gray-800 text-xs text-gray-300 hover:bg-gray-700"
+                  className={`${button.secondary} ${button.compact}`}
                   onClick={() => setOptimalDialog(null)}
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  className="h-7 px-3 rounded bg-blue-700 text-xs text-white hover:bg-blue-600"
+                  className={`${button.primary} ${button.compact}`}
                   onClick={() => {
                     onSetManualOptimalTrajectory(optimalDialog.groupId, optimalDialog.trajId, optimalDialog.arc);
                     setOptimalDialog(null);
@@ -638,32 +646,32 @@ export default function TrajectoryGenCanvas({
       )}
       {tooltip && (
         <div
-          className="absolute z-10 pointer-events-none px-2.5 py-1.5 rounded bg-gray-900 border border-gray-600 text-xs shadow-lg tabular-nums space-y-0.5"
+          className={`absolute z-10 ${overlay.tooltip}`}
           style={{ left: tooltip.x + 12, top: tooltip.y + 12 }}
         >
-          <div className="text-gray-300">
-            Goal <span className="text-white font-mono">({tooltip.dx.toFixed(3)}, {tooltip.dy.toFixed(3)}) m</span>
+          <div className="text-content-muted">
+            Goal <span className="text-content font-mono">({tooltip.dx.toFixed(3)}, {tooltip.dy.toFixed(3)}) m</span>
           </div>
-          <div className="text-gray-300">
-            Speed <span className="text-white font-mono">{tooltip.exitVelocity.toFixed(3)} m/s</span>
+          <div className="text-content-muted">
+            Speed <span className="text-content font-mono">{tooltip.exitVelocity.toFixed(3)} m/s</span>
             {tooltip.speedMoeMinus !== null && tooltip.speedMoePlus !== null && (
-              <span className="text-gray-500 font-mono">
+              <span className="text-content-subtle font-mono">
                 {' '}{formatSpeedMoeBounds({ speedMoeMinus: tooltip.speedMoeMinus, speedMoePlus: tooltip.speedMoePlus })}
               </span>
             )}
           </div>
-          <div className="text-gray-300">
-            Vel buffer <span className="text-white font-mono">{tooltip.velocityBuffer.toFixed(3)} m/s</span>
+          <div className="text-content-muted">
+            Vel buffer <span className="text-content font-mono">{tooltip.velocityBuffer.toFixed(3)} m/s</span>
           </div>
-          <div className="text-gray-300">
-            Exit angle <span className="text-white font-mono">{tooltip.exitAngle.toFixed(2)}°</span>
+          <div className="text-content-muted">
+            Exit angle <span className="text-content font-mono">{tooltip.exitAngle.toFixed(2)}°</span>
             {tooltip.angleMoeMinus !== null && tooltip.angleMoePlus !== null && (
-              <span className="text-gray-500 font-mono">
+              <span className="text-content-subtle font-mono">
                 {' '}{formatMoeBounds(tooltip.angleMoeMinus, tooltip.angleMoePlus, 2, '°')}
               </span>
             )}
           </div>
-          <div className="text-gray-300">ToF <span className="text-white font-mono">{tooltip.timeOfFlight.toFixed(3)} s</span></div>
+          <div className="text-content-muted">ToF <span className="text-content font-mono">{tooltip.timeOfFlight.toFixed(3)} s</span></div>
         </div>
       )}
     </div>

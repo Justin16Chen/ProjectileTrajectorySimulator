@@ -2,10 +2,194 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbars */
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  RAW TOKEN VALUES — the only place a colour value belongs
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  Two themes, one token set:
+ *
+ *      :root      → "Slate"        (light)
+ *      html.dark  → "Slate Night"  (dark)
+ *
+ *  Because every semantic name in tailwind.config.js resolves through these
+ *  variables, switching themes is one class on <html> — no component knows a
+ *  theme exists, and no component markup changes.
+ *
+ *  Values are SPACE-SEPARATED RGB CHANNELS ("20 23 26") rather than hex, so
+ *  Tailwind's opacity modifiers still compose: bg-content/40, ring-accent/20.
+ *
+ *  Canvas code can't read a class, so src/styles/theme.ts mirrors the plot
+ *  roles as plain strings in plotColors / plotColorsDark. Change a data-* /
+ *  grid / axis value here and you must change its mirror there.
+ *
+ *  Every text-on-surface pair in BOTH themes clears WCAG AA (4.5:1; 3:1 for
+ *  disabled text and chart strokes).
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  /* ── Light: "Slate" ─────────────────────────────────────────────────────── */
+  --c-surface: 255 255 255;
+  --c-surface-panel: 247 248 250;
+  --c-surface-sunken: 236 238 240;
+  --c-surface-hover: 237 239 242;
+  --c-surface-active: 227 231 235;
+
+  --c-edge: 219 222 226;
+  --c-edge-strong: 193 198 204;
+  --c-edge-subtle: 231 233 236;
+
+  --c-content: 20 23 26;
+  --c-content-muted: 71 77 83;
+  --c-content-subtle: 98 104 111;
+  --c-content-faint: 127 132 139;
+  --c-content-inverse: 255 255 255;
+
+  --c-accent: 58 90 110;
+  --c-accent-hover: 46 72 89;
+  --c-accent-active: 36 58 72;
+  --c-accent-soft: 231 237 241;
+  --c-accent-subtle: 242 245 247;
+  --c-accent-on: 255 255 255;
+
+  --c-positive: 46 122 78;
+  --c-positive-hover: 37 101 64;
+  --c-positive-soft: 232 242 236;
+  --c-positive-on: 255 255 255;
+
+  --c-caution: 145 99 15;
+  --c-caution-hover: 123 84 11;
+  --c-caution-soft: 246 239 225;
+  --c-caution-on: 255 255 255;
+
+  --c-critical: 175 55 41;
+  --c-critical-hover: 149 45 33;
+  --c-critical-soft: 250 235 233;
+  --c-critical-on: 255 255 255;
+
+  --c-data-primary: 58 90 110;
+  --c-data-primary-alt: 121 148 166;
+  --c-data-secondary: 160 90 36;
+  --c-data-optimal: 46 122 78;
+  --c-data-extreme: 20 23 26;
+  --c-data-goal: 145 99 15;
+  --c-data-grid: 229 232 235;
+  --c-data-axis: 193 198 204;
+
+  --c-brand-blue: 50 102 184;
+  --c-brand-green: 47 148 64;
+  --c-brand-red: 200 53 26;
+  --c-brand-gold: 176 123 12;
+
+  /* A scrim is always ink, never the text colour — the ink scale inverts
+   * between themes and a modal backdrop must not. */
+  --c-scrim: 20 23 26;
+  /* The video stage. True black in BOTH themes: the video is letterboxed with
+   * object-contain, so this is what shows beside the footage, and it has to
+   * read as "outside the frame" rather than as a UI surface. */
+  --c-stage: 0 0 0;
+
+  /* On-video UI. The backdrop is footage, which does NOT change with the
+   * theme, so these are identical in both. They match videoOverlayColors in
+   * src/styles/theme.ts. */
+  --c-video-ink: 237 239 242;
+  --c-video-accent: 251 191 36;
+
+  --c-shadow: 20 23 26;
+  --shadow-alpha-1: 0.05;
+  --shadow-alpha-2: 0.07;
+  --shadow-alpha-3: 0.1;
+  --shadow-alpha-4: 0.18;
+
+  color-scheme: light;
+}
+
+html.dark {
+  /* ── Dark: "Slate Night" ────────────────────────────────────────────────── */
+  --c-surface: 27 31 35;
+  --c-surface-panel: 21 24 27;
+  --c-surface-sunken: 14 16 19;
+  --c-surface-hover: 35 41 48;
+  --c-surface-active: 44 51 58;
+
+  --c-edge: 58 64 71;
+  --c-edge-strong: 80 88 97;
+  --c-edge-subtle: 38 43 48;
+
+  --c-content: 237 239 242;
+  --c-content-muted: 191 198 205;
+  --c-content-subtle: 154 161 169;
+  --c-content-faint: 124 131 139;
+  --c-content-inverse: 20 23 26;
+
+  --c-accent: 126 168 196;
+  --c-accent-hover: 150 186 210;
+  --c-accent-active: 174 204 222;
+  --c-accent-soft: 32 44 54;
+  --c-accent-subtle: 24 33 40;
+  --c-accent-on: 12 18 22;
+
+  --c-positive: 95 190 133;
+  --c-positive-hover: 120 206 154;
+  --c-positive-soft: 22 38 29;
+  --c-positive-on: 8 18 12;
+
+  --c-caution: 210 162 74;
+  --c-caution-hover: 224 182 103;
+  --c-caution-soft: 38 32 21;
+  --c-caution-on: 20 16 10;
+
+  --c-critical: 227 112 95;
+  --c-critical-hover: 237 136 120;
+  --c-critical-soft: 42 22 20;
+  --c-critical-on: 23 10 8;
+
+  --c-data-primary: 126 168 196;
+  --c-data-primary-alt: 168 194 212;
+  --c-data-secondary: 216 154 98;
+  --c-data-optimal: 95 190 133;
+  --c-data-extreme: 237 239 242;
+  --c-data-goal: 210 162 74;
+  --c-data-grid: 42 48 55;
+  --c-data-axis: 80 88 97;
+
+  /* Lifted so the wordmark stays legible on a dark panel. */
+  --c-brand-blue: 110 154 224;
+  --c-brand-green: 79 190 99;
+  --c-brand-red: 232 98 74;
+  --c-brand-gold: 220 169 42;
+
+  --c-scrim: 0 0 0;
+  --c-stage: 0 0 0;
+
+  /* Unchanged from light — see the note there. */
+  --c-video-ink: 237 239 242;
+  --c-video-accent: 251 191 36;
+
+  --c-shadow: 0 0 0;
+  --shadow-alpha-1: 0.3;
+  --shadow-alpha-2: 0.36;
+  --shadow-alpha-3: 0.45;
+  --shadow-alpha-4: 0.6;
+
+  color-scheme: dark;
+}
+
+/*
+ * Global element defaults. Component styling belongs in src/styles/theme.ts —
+ * only put a rule here if it cannot be expressed as a utility class (scrollbars,
+ * native form internals, print rules).
+ */
+
+html {
+  background: rgb(var(--c-surface-sunken));
+  color: rgb(var(--c-content));
+}
+
+/* Scrollbars — theme: colors.edge.strong on a transparent track */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -13,12 +197,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.7);
-  border-radius: 3px;
+  background: rgb(var(--c-edge-strong));
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.9);
+  background: rgb(var(--c-content-faint));
 }
 
 ::-webkit-scrollbar-corner {
@@ -27,5 +211,5 @@
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(75, 85, 99, 0.7) transparent;
+  scrollbar-color: rgb(var(--c-edge-strong)) transparent;
 }

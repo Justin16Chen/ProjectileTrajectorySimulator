@@ -29,11 +29,7 @@ import {
   loadProjectFromDir,
 } from '../utils/projectIO';
 import type { ImportedProjectEntry } from '../utils/projectIO';
-import {
-  panelAside, panelTab, panelSectionTitle, panelSubsectionTitle, panelItemTitle, panelBody,
-  panelHint, panelMeta, panelInput, panelInputNumeric, panelBtn, panelBtnPrimary, panelListItem,
-  panelEmpty, panelMono,
-} from './panelStyles';
+import { layout, text, button, input, control, tab, list, feedback, chrome } from '../styles/theme';
 import PanelResizeHandle from './PanelResizeHandle';
 
 type SidebarTab = 'uploadSave' | 'annotation';
@@ -63,7 +59,7 @@ function FramerateInput({ value, onChange }: { value: number; onChange: (v: numb
       onFocus={() => setFocused(true)}
       onBlur={(e) => { setFocused(false); commit(e.target.value); }}
       onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-      className={panelInput}
+      className={input.text}
     />
   );
 }
@@ -81,8 +77,8 @@ function PointRadiusSlider({
   return (
     <div className="space-y-1.5" title="Radius of plotted trajectory points on the video (current frame is 1.3× larger).">
       <div className="flex items-center justify-between gap-2">
-        <label className="text-sm text-gray-400 whitespace-nowrap flex-shrink-0">Point radius</label>
-        <span className={`${panelMeta} ${panelMono} tabular-nums`}>{value} px</span>
+        <label className={`${text.labelInline} whitespace-nowrap flex-shrink-0`}>Point radius</label>
+        <span className={`${text.meta} ${text.mono}`}>{value} px</span>
       </div>
       <input
         type="range"
@@ -91,7 +87,7 @@ function PointRadiusSlider({
         step={1}
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value, 10))}
-        className="w-full h-1.5 accent-blue-500 cursor-pointer"
+        className={control.sliderNative}
       />
     </div>
   );
@@ -127,7 +123,7 @@ function NumPointsInput({
   return (
     <div className="space-y-1.5" title="Number of plotted points to use when estimating exit velocity and exit angle.">
       <div className="flex items-center justify-between gap-2">
-        <label className="text-sm text-gray-400 whitespace-nowrap flex-shrink-0">Num points to use</label>
+        <label className={`${text.labelInline} whitespace-nowrap flex-shrink-0`}>Num points to use</label>
         <input
           type="text"
           inputMode="numeric"
@@ -136,7 +132,7 @@ function NumPointsInput({
           onFocus={() => setFocused(true)}
           onBlur={(e) => { setFocused(false); commit(e.target.value); }}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-          className={panelInputNumeric}
+          className={input.numeric}
         />
       </div>
       <input
@@ -146,7 +142,7 @@ function NumPointsInput({
         step={1}
         value={Math.min(value, sliderMax)}
         onChange={(e) => onChange(parseInt(e.target.value, 10))}
-        className="w-full h-1.5 accent-blue-500 cursor-pointer"
+        className={control.sliderNative}
       />
     </div>
   );
@@ -552,14 +548,14 @@ export default function SysIdSidebar({
   };
 
   return (
-    <aside className={`${panelAside} border-r border-gray-700 flex flex-col`} style={{ width }}>
+    <aside className={`${layout.panel} ${layout.panelBorderRight}`} style={{ width }}>
       {/* Tab bar */}
-      <div className="flex-shrink-0 flex border-b border-gray-700">
+      <div className={tab.paneBar}>
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setActiveTab(t.id)}
-            className={panelTab(activeTab === t.id)}
+            className={tab.pane(activeTab === t.id)}
           >
             {t.label}
           </button>
@@ -570,11 +566,11 @@ export default function SysIdSidebar({
       {/* ── Upload/Save ── */}
       {activeTab === 'uploadSave' && (
         <>
-          <div className="flex-shrink-0 p-4 border-b border-gray-700">
-            <h2 className={`${panelSectionTitle} mb-3`}>Videos</h2>
+          <div className={layout.panelBlock}>
+            <h2 className={text.sectionTitle}>Videos</h2>
             <button
               onClick={() => uploadInputRef.current?.click()}
-              className={`w-full ${panelBtnPrimary} bg-blue-600 hover:bg-blue-500 text-white`}
+              className={`${button.primary} ${button.block}`}
             >
               <Upload size={16} />
               Upload Video
@@ -591,7 +587,7 @@ export default function SysIdSidebar({
 
           <div className="flex-1 min-h-[8rem] overflow-y-auto p-3 space-y-1.5">
             {videos.length === 0 && (
-              <p className={`${panelEmpty} mt-8 px-2`}>
+              <p className={`${text.empty} mt-8 px-2`}>
                 No videos yet. Upload an iPhone video to get started.
               </p>
             )}
@@ -603,32 +599,26 @@ export default function SysIdSidebar({
                   key={v.id}
                   onClick={() => handleVideoRowClick(v.id)}
                   onContextMenu={(e) => handleVideoRowContextMenu(e, v.id)}
-                  className={`group flex items-start gap-2.5 ${panelListItem} cursor-pointer ${
-                    v.id === selectedId
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  }`}
+                  className={`group flex items-start gap-2.5 ${list.item(v.id === selectedId)}`}
                 >
                   <Film size={16} className="flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{v.name}</div>
-                    <div className={`text-xs truncate mt-0.5 ${v.id === selectedId ? 'text-blue-100' : panelMeta}`}>
+                    <div className={`${list.itemMeta(v.id === selectedId)} mt-0.5`}>
                       {configName}
                     </div>
-                    <div className={`text-xs mt-1 ${v.id === selectedId ? 'text-blue-200' : 'text-gray-500'}`}>
+                    <div className={`${list.itemMeta(v.id === selectedId)} mt-1`}>
                       {pointCount === 0
                         ? 'No points'
                         : `${trajCount} trajectory${trajCount !== 1 ? 'ies' : ''} · ${pointCount} point${pointCount !== 1 ? 's' : ''}`}
                     </div>
                   </div>
-                  <div className="flex-shrink-0 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+                  <div className={`flex-shrink-0 flex flex-col gap-1 mt-0.5 ${chrome.revealOnHover}`}>
                     <button
                       type="button"
                       title="Delete video"
                       onClick={(e) => { e.stopPropagation(); onDelete(v.id); }}
-                      className={`rounded p-0.5 ${
-                        v.id === selectedId ? 'hover:bg-blue-400' : 'hover:bg-gray-700'
-                      }`}
+                      className={v.id === selectedId ? button.iconGhostInverse : button.iconGhostDanger}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -636,9 +626,7 @@ export default function SysIdSidebar({
                       type="button"
                       title="Download this video's config"
                       onClick={(e) => { e.stopPropagation(); handleSaveOneConfigClick(v); }}
-                      className={`rounded p-0.5 ${
-                        v.id === selectedId ? 'hover:bg-blue-400' : 'hover:bg-gray-700'
-                      }`}
+                      className={v.id === selectedId ? button.iconGhostInverse : button.iconGhost}
                     >
                       <Save size={14} />
                     </button>
@@ -650,14 +638,14 @@ export default function SysIdSidebar({
 
           <PanelResizeHandle onDrag={resizeUploadSaveBottom} />
           <div
-            className="flex-shrink-0 min-h-0 overflow-y-auto border-t border-gray-700 p-3 space-y-1.5"
+            className={layout.panelFooter}
             style={{ height: uploadSaveBottomHeight }}
           >
             <button
               type="button"
               onClick={handleSaveConfigsClick}
               disabled={videos.length === 0 || saving || savingProject || importing}
-              className={`w-full ${panelBtnPrimary} bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed py-1.5 text-sm`}
+              className={`${button.secondary} ${button.block}`}
             >
               <Save size={14} />
               {saving ? 'Saving…' : 'Save Configs'}
@@ -666,7 +654,7 @@ export default function SysIdSidebar({
               type="button"
               onClick={handleSaveProjectClick}
               disabled={videos.length === 0 || saving || savingProject || importing}
-              className={`w-full ${panelBtnPrimary} bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed py-1.5 text-sm`}
+              className={`${button.secondary} ${button.block}`}
             >
               <Save size={14} />
               {savingProject ? 'Saving…' : 'Save Project'}
@@ -695,27 +683,19 @@ export default function SysIdSidebar({
               }}
               onFolderSelected={handleImportProjectFolder}
             />
-            <div className={`${panelMeta} text-[11px] leading-snug space-y-1.5`}>
+            <div className={`${text.meta} leading-snug space-y-1.5`}>
               <p>
                 Import Project selects your project folder. Save Project then overwrites configs in that same folder.
               </p>
-              <pre className={`${panelMono} text-gray-500 whitespace-pre-wrap text-[10px] leading-tight`}>{`MyProject/
+              <pre className={text.pre}>{`MyProject/
   shot1.mp4
   shot1_configuration.json
   shot2.mov
   shot2_configuration.json`}</pre>
-              <p>Each video pairs with <span className={panelMono}>{'{name}_configuration.json'}</span>.</p>
+              <p>Each video pairs with <span className={text.mono}>{'{name}_configuration.json'}</span>.</p>
             </div>
             {projectStatus && (
-              <p
-                className={`text-xs leading-snug ${
-                  projectStatus.ok === true
-                    ? 'text-green-400'
-                    : projectStatus.ok === false
-                      ? 'text-red-400'
-                      : 'text-gray-400'
-                }`}
-              >
+              <p className={feedback.status(projectStatus.ok)}>
                 {projectStatus.text}
               </p>
             )}
@@ -729,47 +709,47 @@ export default function SysIdSidebar({
         <div className="flex-1 min-h-0 overflow-y-auto [direction:rtl]">
         <div className="[direction:ltr]">
           {!selectedVideo ? (
-            <p className={`${panelEmpty} mt-8 px-4 pb-8`}>
+            <p className={`${text.empty} mt-8 px-4 pb-8`}>
               Select a video from the Upload/Save tab to annotate trajectories.
             </p>
           ) : (
             <>
               {/* Section 1: video info & instructions */}
-              <div className="flex-shrink-0 p-4 border-b border-gray-700 space-y-2">
-                <h2 className={`${panelItemTitle} truncate`} title={selectedVideo.name}>
+              <div className={layout.panelBlock}>
+                <h2 className={`${text.itemTitle} truncate`} title={selectedVideo.name}>
                   {selectedVideo.name}
                 </h2>
 
-                <p className="text-sm text-gray-400">
+                <p className={text.body}>
                   Currently editing{' '}
                   {editingSegment ? (
                     <span style={{ color: editingSegment.color }} className="font-semibold">
                       {editingSegment.name}
                     </span>
                   ) : (
-                    <span className="text-gray-500 italic">new trajectory</span>
+                    <span className={text.placeholder}>new trajectory</span>
                   )}
                 </p>
 
-                <p className={panelBody}>
+                <p className={text.body}>
                   Click on video to plot points. Arrow keys to step frames. WASD to nudge the current point by 1 cm. Delete key to remove current point. Ctrl + Z / Ctrl + Y to undo/redo. Drag the yellow meterstick on the video to calibrate scale (each pair of points = 1 m). Right-click the line to add points; right-click a point to delete. Ctrl + C / Ctrl + V copies the meterstick to another video.
                 </p>
               </div>
 
               {/* Section 2: exit velocity/angle calculations */}
-              <div className="flex-shrink-0 p-4 border-b border-gray-700 space-y-2">
-                <h3 className={panelSubsectionTitle}>Exit velocity / angle</h3>
-                <p className={panelBody}>
+              <div className={layout.panelBlock}>
+                <h3 className={text.subsectionTitle}>Exit velocity / angle</h3>
+                <p className={text.body}>
                   Set framerate and calibrate the horizontal meterstick on the video. Each consecutive pair of points spans 1 m; scale is interpolated by x for perspective. Exit speed and angle use gravity-corrected points (gray dots).
                 </p>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-400 whitespace-nowrap flex-shrink-0">Framerate (fps)</label>
+                  <label className={`${text.labelInline} whitespace-nowrap flex-shrink-0`}>Framerate (fps)</label>
                   <div className="flex-1 min-w-0">
                     <FramerateInput value={framerate} onChange={onFramerateChange} />
                   </div>
                 </div>
                 {estimatedFps !== null && (
-                  <p className={`${panelMeta} ${panelMono}`} title={`${totalFrames} frames / ${videoDuration.toFixed(3)} s`}>
+                  <p className={`${text.meta} ${text.mono}`} title={`${totalFrames} frames / ${videoDuration.toFixed(3)} s`}>
                     Estimated FPS: {estimatedFps.toFixed(2)}
                   </p>
                 )}
@@ -777,13 +757,13 @@ export default function SysIdSidebar({
                   type="button"
                   onClick={() => selectedVideo && downloadFrameTimingDebug(selectedVideo, 0)}
                   disabled={!selectedVideo?.frameTimes?.length}
-                  className={`${panelBtn} w-full text-xs disabled:opacity-40 disabled:cursor-not-allowed`}
+                  className={`${button.secondary} ${button.block} ${button.compact}`}
                   title="Download frame PTS/DTS timing table (debug)"
                 >
                   Debug timing
                 </button>
                 {dt !== null && (
-                  <p className={`${panelMeta} ${panelMono}`}>dt = {dt.toFixed(6)} s</p>
+                  <p className={`${text.meta} ${text.mono}`}>dt = {dt.toFixed(6)} s</p>
                 )}
                 <NumPointsInput
                   value={empiricalNumPoints}
@@ -792,52 +772,52 @@ export default function SysIdSidebar({
                 />
                 {editingSegment && (
                   <div className="pt-1 space-y-1">
-                    <p className={panelMeta}>
+                    <p className={text.meta}>
                       Gravity offsetted points quality
                     </p>
-                    <div className={`flex items-baseline gap-4 ${panelMono} text-sm text-gray-300`}>
+                    <div className="flex items-baseline gap-4 text-sm">
                       <div title="Linear fit R² for gravity-corrected points. 1 = perfectly straight.">
-                        <span className={panelMeta}>R² </span>
-                        <span className="font-semibold text-white">
+                        <span className={text.meta}>R² </span>
+                        <span className={text.value}>
                           {grayLineQuality.r2 !== null ? grayLineQuality.r2.toFixed(4) : '—'}
                         </span>
                       </div>
                       <div title="Average radius of curvature across consecutive gray-point triplets. Larger = straighter; very large means near-linear.">
-                        <span className={panelMeta}>Avg radius </span>
-                        <span className="font-semibold text-white">
+                        <span className={text.meta}>Avg radius </span>
+                        <span className={text.value}>
                           {formatRadius(grayLineQuality.avgRadiusOfCurvature)}
                         </span>
                       </div>
                     </div>
                     {empiricalNumPoints < 3 && (
-                      <p className={panelHint}>Avg radius requires at least 3 points.</p>
+                      <p className={text.hint}>Avg radius requires at least 3 points.</p>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Section 3: video annotation controls */}
-              <div className="flex-shrink-0 p-4 border-b border-gray-700 space-y-3">
-                <h3 className={panelSubsectionTitle}>Video annotation</h3>
+              <div className={layout.panelBlock}>
+                <h3 className={text.subsectionTitle}>Video annotation</h3>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={onUndo} disabled={!canUndo} title="Undo (Ctrl+Z)" className={panelBtn}>
+                  <button onClick={onUndo} disabled={!canUndo} title="Undo (Ctrl+Z)" className={button.secondary}>
                     Undo
                   </button>
-                  <button onClick={onRedo} disabled={!canRedo} title="Redo (Ctrl+Y)" className={panelBtn}>
+                  <button onClick={onRedo} disabled={!canRedo} title="Redo (Ctrl+Y)" className={button.secondary}>
                     Redo
                   </button>
                   <button
                     onClick={onDeleteCurrentPoint}
                     disabled={!canDeleteCurrentPoint}
                     title="Delete current (Delete)"
-                    className={`${panelBtn} bg-red-950/50 text-red-300 hover:bg-red-900/60 hover:text-red-200 border border-red-900/40`}
+                    className={button.dangerSubtle}
                   >
                     <Trash size={14} />
                     Delete current
                   </button>
                   <button
                     onClick={onClearAllPoints}
-                    className={`${panelBtn} bg-red-950/50 text-red-300 hover:bg-red-900/60 hover:text-red-200 border border-red-900/40`}
+                    className={button.dangerSubtle}
                   >
                     <RotateCcw size={14} />
                     Clear all
@@ -846,11 +826,7 @@ export default function SysIdSidebar({
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => onPlottingModeChange(!plottingMode)}
-                    className={`${panelBtn} ${
-                      plottingMode
-                        ? 'bg-green-700 text-white hover:bg-green-600'
-                        : 'bg-green-600 text-white hover:bg-green-500'
-                    }`}
+                    className={button.toggle(plottingMode)}
                   >
                     <Crosshair size={14} />
                     {plottingMode ? 'Stop Plotting' : 'Plot Ball'}
@@ -859,7 +835,7 @@ export default function SysIdSidebar({
                     onClick={onSkipFrame}
                     disabled={!canSkipFrame}
                     title="Label current frame as skipped (ball off-screen) and advance (R)"
-                    className={`${panelBtn} bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed`}
+                    className={button.secondary}
                   >
                     <SkipForward size={14} />
                     Skip frame
@@ -895,8 +871,8 @@ export default function SysIdSidebar({
               </div>
 
               {/* Trajectory list */}
-              <div className="border-t border-gray-700">
-                <h3 className={`px-4 py-2.5 ${panelSectionTitle}`}>
+              <div className={layout.divider}>
+                <h3 className={`px-4 py-2.5 ${text.sectionTitle}`}>
                   Trajectories ({segments.length})
                 </h3>
                 {segments.length > 0 && (
@@ -905,7 +881,7 @@ export default function SysIdSidebar({
                       type="button"
                       disabled={!canApplyAllVelEstimates}
                       onClick={applyAllVelEstimates}
-                      className={`flex-1 ${panelBtn} text-[11px] py-1 px-1.5 disabled:opacity-30 disabled:cursor-not-allowed`}
+                      className={`flex-1 ${button.secondary} ${button.compact}`}
                     >
                       Use vel estimate
                     </button>
@@ -913,7 +889,7 @@ export default function SysIdSidebar({
                       type="button"
                       disabled={!canApplyAllAngleEstimates}
                       onClick={applyAllAngleEstimates}
-                      className={`flex-1 ${panelBtn} text-[11px] py-1 px-1.5 disabled:opacity-30 disabled:cursor-not-allowed`}
+                      className={`flex-1 ${button.secondary} ${button.compact}`}
                     >
                       Use angle estimate
                     </button>
@@ -921,7 +897,7 @@ export default function SysIdSidebar({
                 )}
                 <div className="px-3 pb-3 space-y-1.5">
                   {segments.length === 0 && (
-                    <p className={`${panelEmpty} py-4`}>No trajectories plotted yet</p>
+                    <p className={`${text.empty} py-4`}>No trajectories plotted yet</p>
                   )}
                   {segmentStats.map((seg) => {
                     const isActive =
@@ -930,9 +906,7 @@ export default function SysIdSidebar({
                     return (
                       <div
                         key={seg.id}
-                        className={`${panelListItem} ${
-                          isActive ? 'bg-gray-800 ring-1 ring-gray-600' : ''
-                        }`}
+                        className={list.card(isActive)}
                       >
                         <button
                           type="button"
@@ -945,14 +919,14 @@ export default function SysIdSidebar({
                           <div className="font-semibold" style={{ color: seg.color }}>
                             {seg.name}
                           </div>
-                          <div className={`text-sm text-gray-300 mt-1 ${panelMono}`}>
-                            <span className={panelMeta}>Estimate: </span>
+                          <div className={`text-sm mt-1 ${text.mono}`}>
+                            <span className={text.meta}>Estimate: </span>
                             {seg.speed !== null ? `${seg.speed.toFixed(2)} m/s` : '— m/s'}
                             {' · '}
                             {seg.angle !== null ? `${seg.angle.toFixed(1)}°` : '—°'}
                           </div>
-                          <div className={`text-sm text-gray-300 mt-0.5 ${panelMono}`}>
-                            <span className={panelMeta}>Actual: </span>
+                          <div className={`text-sm mt-0.5 ${text.mono}`}>
+                            <span className={text.meta}>Actual: </span>
                             {seg.actualSpeed.toFixed(2)} m/s
                             {' · '}
                             {seg.actualAngle.toFixed(1)}°
@@ -963,7 +937,7 @@ export default function SysIdSidebar({
                             type="button"
                             disabled={seg.speed === null}
                             onClick={() => seg.speed !== null && applyVelEstimate(seg.id, seg.speed)}
-                            className={`flex-1 ${panelBtn} text-[11px] py-1 px-1.5 disabled:opacity-30 disabled:cursor-not-allowed`}
+                            className={`flex-1 ${button.secondary} ${button.compact}`}
                           >
                             Use vel estimate
                           </button>
@@ -971,7 +945,7 @@ export default function SysIdSidebar({
                             type="button"
                             disabled={seg.angle === null}
                             onClick={() => seg.angle !== null && applyAngleEstimate(seg.id, seg.angle)}
-                            className={`flex-1 ${panelBtn} text-[11px] py-1 px-1.5 disabled:opacity-30 disabled:cursor-not-allowed`}
+                            className={`flex-1 ${button.secondary} ${button.compact}`}
                           >
                             Use angle estimate
                           </button>
@@ -981,31 +955,31 @@ export default function SysIdSidebar({
                   })}
                 </div>
                 {averages.count > 0 && (
-                  <div className="px-4 py-3 border-t border-gray-700 bg-gray-800/40 space-y-2">
-                    <p className={panelSectionTitle}>
+                  <div className={`mx-3 mb-3 ${layout.cardSunken} space-y-2`}>
+                    <p className={text.sectionTitle}>
                       Averages ({averages.count} trajectory{averages.count !== 1 ? 'ies' : ''})
                     </p>
-                    <div className={`text-sm text-gray-300 ${panelMono}`}>
-                      <span className={panelMeta}>Estimate: </span>
+                    <div className={`text-sm ${text.mono}`}>
+                      <span className={text.meta}>Estimate: </span>
                       {averages.estimateSpeed !== null ? `${averages.estimateSpeed.toFixed(2)} m/s` : '— m/s'}
                       {' · '}
                       {averages.estimateAngle !== null ? `${averages.estimateAngle.toFixed(1)}°` : '—°'}
                     </div>
-                    <div className={`text-sm text-gray-300 ${panelMono}`}>
-                      <span className={panelMeta}>Actual: </span>
+                    <div className={`text-sm ${text.mono}`}>
+                      <span className={text.meta}>Actual: </span>
                       {averages.actualSpeed !== null ? `${averages.actualSpeed.toFixed(2)} m/s` : '— m/s'}
                       {' · '}
                       {averages.actualAngle !== null ? `${averages.actualAngle.toFixed(1)}°` : '—°'}
                     </div>
-                    <p className={`${panelSectionTitle} pt-1`}>Std. dev.</p>
-                    <div className={`text-sm text-gray-300 ${panelMono}`}>
-                      <span className={panelMeta}>Estimate: </span>
+                    <p className={`${text.sectionTitle} pt-1`}>Std. dev.</p>
+                    <div className={`text-sm ${text.mono}`}>
+                      <span className={text.meta}>Estimate: </span>
                       {averages.estimateSpeedStd !== null ? `${averages.estimateSpeedStd.toFixed(2)} m/s` : '— m/s'}
                       {' · '}
                       {averages.estimateAngleStd !== null ? `${averages.estimateAngleStd.toFixed(1)}°` : '—°'}
                     </div>
-                    <div className={`text-sm text-gray-300 ${panelMono}`}>
-                      <span className={panelMeta}>Actual: </span>
+                    <div className={`text-sm ${text.mono}`}>
+                      <span className={text.meta}>Actual: </span>
                       {averages.actualSpeedStd !== null ? `${averages.actualSpeedStd.toFixed(2)} m/s` : '— m/s'}
                       {' · '}
                       {averages.actualAngleStd !== null ? `${averages.actualAngleStd.toFixed(1)}°` : '—°'}

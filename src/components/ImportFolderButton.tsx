@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { FolderOpen } from 'lucide-react';
 import { pickFolderForImport } from '../utils/projectIO';
-import { panelBtnPrimary } from './panelStyles';
+import { button } from '../styles/theme';
 
 const PICKER_DELAY_MS = 150;
 
@@ -29,7 +29,7 @@ export function ImportFolderButton({
   busyLabel = 'Importing…',
   icon: Icon = FolderOpen,
   disabled = false,
-  className = `w-full ${panelBtnPrimary} bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed py-1.5 text-sm`,
+  className = `${button.secondary} ${button.block}`,
   unsupportedMessage,
   onBeforeImport,
   onCancel,

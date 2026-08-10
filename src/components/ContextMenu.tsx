@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { overlay } from '../styles/theme';
 
 export interface ContextMenuItem {
   id: string;
@@ -37,16 +38,14 @@ export default function ContextMenu({ x, y, items, onClose }: Props) {
   return (
     <div
       data-context-menu
-      className="fixed z-50 min-w-[10rem] bg-gray-900 border border-gray-600 rounded-md shadow-xl py-1 text-sm text-gray-200"
+      className={overlay.menu}
       style={{ left: x, top: y }}
     >
       {items.map((item) => (
         <button
           key={item.id}
           type="button"
-          className={`block w-full text-left px-3 py-1.5 hover:bg-gray-800 ${
-            item.variant === 'danger' ? 'text-red-300' : ''
-          }`}
+          className={item.variant === 'danger' ? overlay.menuItemDanger : overlay.menuItem}
           onClick={() => {
             item.onClick();
             onClose();

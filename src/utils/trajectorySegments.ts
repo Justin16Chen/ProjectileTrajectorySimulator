@@ -1,6 +1,7 @@
 import { TrajectoryPoint, LaunchParams, Meterstick, MeterstickPoint, VideoData, XDir } from '../types';
 import { defaultMeterstickPoints, defaultSegmentMeters, horizontalizeMeterstickPoints, meterstickFromPoints, normalizeSegmentMeters } from './meterstickScale';
 import { elapsedSeconds } from './frameTiming';
+import { trajectorySeriesColors } from '../styles/theme';
 
 export const DEFAULT_LAUNCH_PARAMS: LaunchParams = {
   exitVelocity: 8,
@@ -19,16 +20,8 @@ export function getLaunchParams(
   return saved ? { ...DEFAULT_LAUNCH_PARAMS, ...saved } : DEFAULT_LAUNCH_PARAMS;
 }
 
-export const TRAJECTORY_COLORS = [
-  '#ef4444', // bright red
-  '#eab308', // yellow
-  '#22c55e', // bright green
-  '#3b82f6', // bright blue
-  '#a855f7', // purple
-  '#ec4899', // pink
-  '#06b6d4', // cyan
-  '#f97316', // orange
-];
+/** Re-exported from the style guide so there is one place colours are defined. */
+export const TRAJECTORY_COLORS: readonly string[] = trajectorySeriesColors;
 
 export interface TrajectorySegment {
   id: string;

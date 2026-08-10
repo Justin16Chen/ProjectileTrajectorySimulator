@@ -3,10 +3,7 @@ import { TrajGenParams } from '../types';
 import { countTrajGenSearchSteps, type TrajGenProgress } from '../simulation';
 import { Play, Loader, RefreshCw } from 'lucide-react';
 import { CheckboxLabel } from './Checkbox';
-import {
-  panelAside, panelContent, panelSectionTitle, panelSubsectionTitle, panelLabel,
-  panelLabelInline, panelInput, panelHint, panelBtnPrimary, panelMeta,
-} from './panelStyles';
+import { layout, text, input, button, control } from '../styles/theme';
 import { ProgressBar } from './ProgressBar';
 
 interface Props {
@@ -55,7 +52,7 @@ function RangeInput({ label, value, step, min, max, onCommit }: {
 
   return (
     <div className="flex-1">
-      <label className={panelLabel}>{label}</label>
+      <label className={text.label}>{label}</label>
       <input
         type="text"
         inputMode="decimal"
@@ -65,7 +62,7 @@ function RangeInput({ label, value, step, min, max, onCommit }: {
         onFocus={() => setFocused(true)}
         onBlur={(e) => { setFocused(false); commit(e.target.value); }}
         onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-        className={panelInput}
+        className={input.text}
       />
     </div>
   );
@@ -125,10 +122,10 @@ function RangeRow({ label, unit, min, max, step, valMin, valMax, onChangeMin, on
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className={panelLabelInline}>{label}</label>
-        <span className={panelMeta}>{unit}</span>
+        <label className={text.labelInline}>{label}</label>
+        <span className={text.meta}>{unit}</span>
       </div>
-      <div className={`flex justify-between ${panelMeta} mb-1`}>
+      <div className={`flex justify-between ${text.meta} mb-1`}>
         <span>{min}</span>
         <span>{max}</span>
       </div>
@@ -139,23 +136,23 @@ function RangeRow({ label, unit, min, max, step, valMin, valMax, onChangeMin, on
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
-        {/* Track background */}
-        <div className="absolute w-full h-1.5 bg-gray-700 rounded-full" />
-        {/* Active range */}
-        <div
-          className="absolute h-1.5 bg-blue-600 rounded-full"
-          style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }}
-        />
-        {/* Min thumb */}
-        <div
-          className="absolute w-3.5 h-3.5 bg-blue-400 border-2 border-blue-300 rounded-full shadow"
-          style={{ left: `${minPct}%`, transform: `translateX(-${minPct}%)` }}
-        />
-        {/* Max thumb */}
-        <div
-          className="absolute w-3.5 h-3.5 bg-blue-400 border-2 border-blue-300 rounded-full shadow"
-          style={{ left: `${maxPct}%`, transform: `translateX(-${maxPct}%)` }}
-        />
+        <div className={`${control.sliderTrack} w-full`}>
+          {/* Active range */}
+          <div
+            className={control.sliderFill}
+            style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }}
+          />
+          {/* Min thumb */}
+          <div
+            className={control.sliderThumb}
+            style={{ left: `${minPct}%`, transform: `translate(-${minPct}%, -50%)` }}
+          />
+          {/* Max thumb */}
+          <div
+            className={control.sliderThumb}
+            style={{ left: `${maxPct}%`, transform: `translate(-${maxPct}%, -50%)` }}
+          />
+        </div>
       </div>
       <div className="flex gap-2">
         <RangeInput label="Min" value={valMin} step={step} min={min} max={valMax - step}
@@ -191,8 +188,8 @@ function NumInput({ label, unit, value, step, min, max, onChange }: {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <label className={panelSubsectionTitle}>{label}</label>
-        {unit && <span className={panelMeta}>{unit}</span>}
+        <label className={text.subsectionTitle}>{label}</label>
+        {unit && <span className={text.meta}>{unit}</span>}
       </div>
       <input
         type="text"
@@ -203,7 +200,7 @@ function NumInput({ label, unit, value, step, min, max, onChange }: {
         onFocus={() => setFocused(true)}
         onBlur={(e) => { setFocused(false); commit(e.target.value); }}
         onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-        className={panelInput}
+        className={input.text}
       />
     </div>
   );
@@ -220,9 +217,9 @@ export default function TrajectoryGenLeft({
   const busy = generating || refining;
 
   return (
-    <aside className={`${panelAside} border-r border-gray-700 overflow-y-auto`} style={{ width }}>
-      <div className={panelContent}>
-        <h2 className={panelSectionTitle}>Scene Setup</h2>
+    <aside className={`${layout.panel} ${layout.panelBorderRight} overflow-y-auto`} style={{ width }}>
+      <div className={layout.panelScroll}>
+        <h2 className={text.sectionTitle}>Scene Setup</h2>
 
         {/* Scene Setup */}
         <div className="space-y-3">
@@ -247,9 +244,9 @@ export default function TrajectoryGenLeft({
             onChange={(v) => set('magnusPower', Math.min(3, Math.max(1, v)))} />
         </div>
 
-        <div className="border-t border-gray-700" />
+        <div className={layout.divider} />
 
-        <h2 className={panelSectionTitle}>Search Parameters</h2>
+        <h2 className={text.sectionTitle}>Search Parameters</h2>
 
         {/* Exit Angle Range */}
         <RangeRow
@@ -283,7 +280,7 @@ export default function TrajectoryGenLeft({
 
         {/* Step Sizes */}
         <div className="space-y-3">
-          <h3 className={panelSubsectionTitle}>Step Sizes</h3>
+          <h3 className={text.subsectionTitle}>Step Sizes</h3>
           <NumInput label="Angle Step" unit="deg" value={params.angleStep} step={0.1} min={0.1}
             onChange={(v) => set('angleStep', Math.max(0.1, v))} />
           <NumInput label="Velocity Step" unit="m/s" value={params.velocityStep} step={0.01} min={0.01}
@@ -311,11 +308,7 @@ export default function TrajectoryGenLeft({
         <button
           onClick={onGenerate}
           disabled={busy}
-          className={`w-full ${panelBtnPrimary} font-semibold ${
-            busy
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-500 text-white'
-          }`}
+          className={`${button.primary} ${button.block}`}
         >
           {generating ? <Loader size={16} className="animate-spin" /> : <Play size={16} />}
           {generating ? 'Generating…' : 'Generate Trajectories'}
@@ -324,11 +317,7 @@ export default function TrajectoryGenLeft({
         <button
           onClick={onRefine}
           disabled={busy || !canRefine}
-          className={`w-full ${panelBtnPrimary} font-semibold ${
-            busy || !canRefine
-              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-700 hover:bg-gray-600 text-white'
-          }`}
+          className={`${button.secondary} ${button.block}`}
         >
           {refining ? <Loader size={16} className="animate-spin" /> : <RefreshCw size={16} />}
           {refining ? 'Refining…' : 'Refine Trajectories'}
@@ -349,7 +338,7 @@ export default function TrajectoryGenLeft({
           />
         )}
 
-        <p className={`${panelHint} text-center tabular-nums`}>
+        <p className={`${text.hint} text-center tabular-nums`}>
           {countTrajGenSearchSteps(params).toLocaleString()} Combinations
         </p>
       </div>

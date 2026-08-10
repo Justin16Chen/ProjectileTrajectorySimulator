@@ -14,6 +14,7 @@ import {
   moveMeterstickPointX,
   hitSegmentLabel,
 } from '../utils/meterstickCanvas';
+import { button, chrome, control, overlay, text, videoOverlayColors } from '../styles/theme';
 
 interface Props {
   video: VideoData;
@@ -672,13 +673,13 @@ export default function VideoDisplay({
           ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
           ctx.fillStyle = seg.color;
           ctx.fill();
-          ctx.strokeStyle = 'white';
+          ctx.strokeStyle = videoOverlayColors.activePoint;
           ctx.lineWidth = isActive ? 2 : 1.5;
           ctx.stroke();
           if (isActive) {
             ctx.beginPath();
             ctx.arc(pt.x, pt.y, pointRadius * 0.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = videoOverlayColors.activePoint;
             ctx.fill();
           }
         });
@@ -691,7 +692,7 @@ export default function VideoDisplay({
         if (corrected.length >= 2) {
           ctx.beginPath();
           corrected.forEach((pt, i) => { if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y); });
-          ctx.strokeStyle = 'rgba(156, 163, 175, 0.6)';
+          ctx.strokeStyle = videoOverlayColors.gravityLine;
           ctx.lineWidth = 1.5;
           ctx.setLineDash([4, 4]);
           ctx.stroke();
@@ -701,9 +702,9 @@ export default function VideoDisplay({
           corrected.forEach((pt) => {
             ctx.beginPath();
             ctx.arc(pt.x, pt.y, pointRadius * 0.8, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(156, 163, 175, 0.85)';
+            ctx.fillStyle = videoOverlayColors.gravityPoint;
             ctx.fill();
-            ctx.strokeStyle = 'rgba(75, 85, 99, 0.9)';
+            ctx.strokeStyle = videoOverlayColors.gravityPointStroke;
             ctx.lineWidth = 1;
             ctx.stroke();
           });
@@ -717,7 +718,7 @@ export default function VideoDisplay({
         if (i === 0) ctx.moveTo(pt.x, pt.y);
         else ctx.lineTo(pt.x, pt.y);
       });
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = videoOverlayColors.activePoint;
       ctx.lineWidth = 3;
       ctx.stroke();
     }
@@ -742,7 +743,7 @@ export default function VideoDisplay({
         const cy = launchPoint.y - sp.y * ppmLaunch;
         if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
       });
-      ctx.strokeStyle = 'rgba(34,197,94,0.95)';
+      ctx.strokeStyle = videoOverlayColors.simulation;
       ctx.lineWidth = 2.5;
       ctx.setLineDash([8, 4]);
       ctx.stroke();
@@ -756,16 +757,20 @@ export default function VideoDisplay({
           const my = launchPoint.y - pos.y * ppmLaunch;
           ctx.beginPath();
           ctx.arc(mx, my, 10, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(34,197,94,0.95)';
+          ctx.fillStyle = videoOverlayColors.simulation;
           ctx.fill();
-          ctx.strokeStyle = 'black';
+          ctx.strokeStyle = videoOverlayColors.activePointStroke;
           ctx.lineWidth = 2.5;
           ctx.stroke();
         }
       }
     }
 
-    const stickColor = stickSelected ? '#fef08a' : (meterstickHovered || multiDragging) ? '#fde68a' : '#fbbf24';
+    const stickColor = stickSelected
+      ? videoOverlayColors.meterstickSelected
+      : (meterstickHovered || multiDragging)
+      ? videoOverlayColors.meterstickHovered
+      : videoOverlayColors.meterstick;
     const stickWidth = stickSelected || meterstickHovered || multiDragging ? 4 : 3;
 
     const pts = video.meterstickPoints;
@@ -783,7 +788,7 @@ export default function VideoDisplay({
         ctx.font = 'bold 13px system-ui, sans-serif';
         ctx.fillStyle = stickColor;
         ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 3;
+        ctx.shadowColor = videoOverlayColors.textShadow; ctx.shadowBlur = 3;
         ctx.fillText(label, (a.x + b.x) / 2, a.y - 12);
         ctx.shadowBlur = 0;
       }
@@ -792,7 +797,7 @@ export default function VideoDisplay({
         ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
         ctx.fillStyle = stickColor;
         ctx.fill();
-        ctx.strokeStyle = 'white';
+        ctx.strokeStyle = videoOverlayColors.activePoint;
         ctx.lineWidth = 1.5;
         ctx.stroke();
       });
@@ -804,9 +809,9 @@ export default function VideoDisplay({
       const labelY = meterstickScale.yAtX(hx);
       if (labelY !== null) {
         ctx.font = '12px ui-monospace, monospace';
-        ctx.fillStyle = '#fde68a';
+        ctx.fillStyle = videoOverlayColors.meterstickLabel;
         ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowColor = videoOverlayColors.textShadow;
         ctx.shadowBlur = 4;
         ctx.fillText(`${ppm.toFixed(1)} px/m`, hx, labelY + 28);
         ctx.shadowBlur = 0;
@@ -823,7 +828,7 @@ export default function VideoDisplay({
 
   return (
     <div className="flex flex-col flex-1 min-w-0 h-full outline-none">
-      <div ref={containerRef} className="relative flex-1 bg-black overflow-hidden">
+      <div ref={containerRef} className={chrome.videoStage}>
         <div
           className="absolute inset-0 w-full h-full"
           style={{
@@ -856,7 +861,7 @@ export default function VideoDisplay({
           <input
             ref={segmentInputRef}
             type="text"
-            className="fixed z-50 px-1.5 py-0.5 text-xs font-bold text-yellow-100 bg-gray-900 border border-yellow-500 rounded shadow-lg outline-none text-center"
+            className={chrome.onVideoLabel}
             style={{
               left: editingSegment.screenX,
               top: editingSegment.screenY,
@@ -879,13 +884,13 @@ export default function VideoDisplay({
         )}
         {contextMenu && (
           <div
-            className="fixed z-50 min-w-[8rem] bg-gray-900 border border-gray-600 rounded-md shadow-xl py-1 text-sm text-gray-200"
+            className={overlay.menu}
             style={{ left: contextMenu.screenX, top: contextMenu.screenY }}
           >
             {contextMenu.segmentIndex !== null && (
               <button
                 type="button"
-                className="block w-full text-left px-3 py-1.5 hover:bg-gray-800"
+                className={overlay.menuItem}
                 onClick={handleAddMeterstickPoint}
               >
                 Add point
@@ -894,7 +899,7 @@ export default function VideoDisplay({
             {contextMenu.pointIndex !== null && video.meterstickPoints.length > 2 && (
               <button
                 type="button"
-                className="block w-full text-left px-3 py-1.5 hover:bg-gray-800 text-red-300"
+                className={overlay.menuItemDanger}
                 onClick={handleDeleteMeterstickPoint}
               >
                 Delete point
@@ -904,7 +909,7 @@ export default function VideoDisplay({
         )}
       </div>
 
-      <div className="relative bg-gray-900 border-t border-gray-700 flex-shrink-0 px-4 py-3">
+      <div className={chrome.videoToolbar}>
         <div
           className="relative px-2 py-2 cursor-pointer select-none"
           onMouseDown={handleScrubMouseDown}
@@ -914,7 +919,7 @@ export default function VideoDisplay({
               {irregularFrames.map((frameIdx) => (
                 <div
                   key={frameIdx}
-                  className="absolute bottom-0 w-1.5 h-1.5 bg-white rounded-full -translate-x-1/2 shadow-sm"
+                  className={control.scrubMarker}
                   style={{
                     left: totalFrames > 1 ? `${(frameIdx / (totalFrames - 1)) * 100}%` : '0%',
                   }}
@@ -926,7 +931,7 @@ export default function VideoDisplay({
           <div className="relative">
             <div
               ref={scrubTrackRef}
-              className="relative h-2.5 bg-gray-700 rounded-full overflow-hidden"
+              className={control.scrubTrack}
             >
               {segments.map((seg) => {
                 const { left, width } = scrubSegmentStyle(seg.frameStart, seg.frameEnd, totalFrames);
@@ -967,30 +972,30 @@ export default function VideoDisplay({
               )}
             </div>
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white rounded-full shadow-md border-2 border-gray-900 -translate-x-1/2 z-10 pointer-events-none"
+              className={control.scrubThumb}
               style={{ left: `${progressPercent}%` }}
             />
           </div>
         </div>
         <div className="flex items-center justify-center gap-3 mt-2">
-          <span className="text-[10px] text-gray-500 font-mono tabular-nums min-w-[5rem] text-right shrink-0">
+          <span className={`${text.metaFine} ${text.mono} min-w-[5rem] text-right shrink-0`}>
             {frameDeltaLabel ?? ''}
           </span>
           <button
             onMouseDown={(e) => { e.preventDefault(); onStartFrameHold(-1); }}
             onMouseUp={onStopFrameHold}
             onMouseLeave={onStopFrameHold}
-            className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors select-none"
+            className={`${button.icon} select-none`}
             title="Previous frame (←)"
           >
             <ChevronLeft size={18} />
           </button>
           <div className="flex flex-col items-center min-w-[7rem] text-center">
-            <span className="text-xs text-gray-400 font-mono tabular-nums leading-none">
+            <span className={`${text.meta} ${text.mono} leading-none`}>
               Frame {video.currentFrame + 1} / {totalFrames}
             </span>
             {isCurrentFrameSkipped && (
-              <span className="text-[10px] text-gray-500 leading-none h-3 flex items-center justify-center">
+              <span className={`${text.metaFine} leading-none h-3 flex items-center justify-center`}>
                 skipped
               </span>
             )}
@@ -999,16 +1004,16 @@ export default function VideoDisplay({
             onMouseDown={(e) => { e.preventDefault(); onStartFrameHold(1); }}
             onMouseUp={onStopFrameHold}
             onMouseLeave={onStopFrameHold}
-            className="p-1.5 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors select-none"
+            className={`${button.icon} select-none`}
             title="Next frame (→)"
           >
             <ChevronRight size={18} />
           </button>
         </div>
-        <span className="absolute bottom-3 left-4 text-xs text-gray-500 pointer-events-none">
-          <span className="text-white">●</span> = abnormal framerate
+        <span className={`absolute bottom-3 left-4 ${text.meta} pointer-events-none`}>
+          <span className="text-content-subtle">●</span> = abnormal framerate
         </span>
-        <span className="absolute bottom-3 right-4 text-xs text-gray-500 font-mono tabular-nums pointer-events-none">
+        <span className={`absolute bottom-3 right-4 ${text.meta} ${text.mono} pointer-events-none`}>
           {Math.round(zoom * 100)}%
         </span>
       </div>

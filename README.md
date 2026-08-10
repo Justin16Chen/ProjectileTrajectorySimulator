@@ -54,6 +54,69 @@ The physics inside this website models 3 forces: gravity, drag, and magnus (spin
 14. The right panel shows all generated trajectories. Each tab shows all the trajectories corresponding to a certain goal. You can copy, refine, delete, or manually add trajectories. Sometimes there will be gaps in the generated trajectories. You may either regenerate them with smaller step sizes for velocity, or manually add in the missing ones. 
 15. Once you are satisfied, click download all trajectories, and it will download a series of JSON files. Each JSON file contains info for all the trajectories corresponding to a certain goal
 
+## Styling and theming
+
+All visual styling is centralized in two files. Nothing else in the codebase should
+contain a colour.
+
+| File | What it holds |
+| --- | --- |
+| `src/index.css` | The raw values — every colour in the app, as RGB channels, once per theme (`:root` = light, `html.dark` = dark). |
+| `tailwind.config.js` | Maps semantic token names (`surface`, `edge`, `content`, `accent`, `positive`…) onto those variables, plus font stacks and elevation. |
+| `src/styles/theme.ts` | The style guide: named, categorized class strings for every kind of UI element, plus the colour constants canvas and chart code use. |
+
+**To reskin the app**, change the channels in `src/index.css` and the mirrored
+`plotColors` / `plotColorsDark` constants in `theme.ts`. Nothing else.
+
+### Light and dark
+
+There are two themes, `Slate` and `Slate Night`, toggled by the sun/moon button
+beside the wordmark. The choice persists to `localStorage` and defaults to the OS
+setting; a small script in `index.html` applies it before first paint so a dark
+reload never flashes white.
+
+Because every token resolves through a CSS variable, **components need no dark
+variants** — no `dark:` classes anywhere. Two things are deliberately exempt:
+
+- `stage` is true black in both themes. The video is letterboxed with
+  `object-contain`, so that colour fills the bars beside the footage and has to
+  read as "outside the frame".
+- The `video-*` tokens (used by `chrome.onVideoLabel` and mirrored in
+  `videoOverlayColors`) are identical in both themes, because their backdrop is
+  footage — it doesn't lighten when the app does.
+
+Canvas code can't read a class, so it calls `plotPalette(useThemeMode())` and
+must list the result in its draw dependencies, or a toggle won't repaint it.
+
+**To build a new UI element**, import its category from `theme.ts`:
+
+```tsx
+import { text, button, input, control } from '../styles/theme';
+
+<h3 className={text.subsectionTitle}>Physics model</h3>
+<input className={input.numeric} />
+<button className={`${button.primary} ${button.block}`}>Generate</button>
+```
+
+The categories are `layout`, `text`, `button`, `input`, `control` (checkboxes,
+segmented toggles, sliders), `tab`, `list`, `table`, `badge`, `overlay`, `feedback`,
+`chrome`, and `brand`. Stateful ones are functions — `tab.pane(isActive)`,
+`table.row('invalid')`.
+
+**Rules of thumb** (the full version is the header comment in `theme.ts`):
+
+- Reuse the closest existing entry rather than adding a near-duplicate. A ninth
+  slightly-different grey is a bug, not a style.
+- If genuinely nothing fits, add a named entry to the right category with a comment
+  saying when to pick it over its siblings.
+- Colours come from `tailwind.config.js` only. Use semantic names (`caution`) rather
+  than palette names (`amber-500`).
+- Status colour is `positive` / `caution` / `critical`. Never use the accent to mean
+  something.
+- The video stage is the one intentional black, because the video is letterboxed and
+  those bars must read as "outside the footage". Before a video is loaded, that area
+  is an ordinary light empty state.
+
 ## Helpful Tips
 To fill in missing trajectories, simply copy an existing one, edit the exit angle, then hover over the trajectory and click the refine icon (looks like a repeat icon) to the right. This will automatically adjust the trajectory to accurately hit the goal.  
 

@@ -9,13 +9,11 @@ import {
   type TrajectoryMoe,
 } from '../simulation';
 import DualAxisDistanceChart, {
-  DUAL_AXIS_LEFT_COLOR,
-  DUAL_AXIS_LEFT_EXTRA_COLOR,
-  DUAL_AXIS_RIGHT_COLOR,
   type DualAxisPoint,
   type DualAxisRangeBar,
 } from './DualAxisDistanceChart';
-import { panelHint, panelLabelInline, panelSubsectionTitle } from './panelStyles';
+import { text, input, button, plotPalette } from '../styles/theme';
+import { useThemeMode } from '../styles/themeMode';
 import SegmentedToggle from './SegmentedToggle';
 
 interface Props {
@@ -124,10 +122,10 @@ function WeightField({
 }) {
   return (
     <label className="flex items-center gap-1.5 shrink-0">
-      <span className={`${panelLabelInline} text-gray-400 text-xs whitespace-nowrap`}>{label}</span>
+      <span className={`${text.meta} whitespace-nowrap`}>{label}</span>
       <input
         type="number"
-        className="w-11 tabular-nums text-xs text-center px-1 py-0.5 h-6 rounded border border-gray-600 bg-gray-800 text-gray-100 focus:outline-none focus:border-blue-500"
+        className={input.numericTight}
         value={value}
         min={min}
         step={step}
@@ -153,10 +151,10 @@ function SectionHeader({
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center gap-2 px-5 py-3 text-left border-b border-gray-800 bg-gray-900/40 hover:bg-gray-900/70"
+      className="flex w-full items-center gap-2 px-5 py-3 text-left text-content-muted border-b border-edge bg-surface-panel hover:bg-surface-hover"
     >
       {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-      <span className={panelSubsectionTitle}>{title}</span>
+      <span className={text.subsectionTitle}>{title}</span>
     </button>
   );
 }
@@ -173,6 +171,7 @@ export default function TrajectoryOptimalAnalysis({
 }: Props) {
   const [sequenceMode, setSequenceMode] = useState<SequenceShowMode>('function');
   const [arcMode, setArcMode] = useState<ArcShowMode>('low');
+  const plot = plotPalette(useThemeMode());
   const [tuningExpanded, setTuningExpanded] = useState(true);
   const [analysisExpanded, setAnalysisExpanded] = useState(true);
 
@@ -254,16 +253,16 @@ export default function TrajectoryOptimalAnalysis({
   );
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden">
+    <div className="h-full min-h-0 overflow-y-auto overflow-x-hidden bg-surface">
       <SectionHeader
         title="Optimal tuning"
         expanded={tuningExpanded}
         onToggle={() => setTuningExpanded((v) => !v)}
       />
       {tuningExpanded && (
-        <section className="border-b border-gray-800">
+        <section className="border-b border-edge">
           <div className="px-5 pt-3 pb-3 space-y-2">
-            <p className={`${panelHint} text-gray-500 text-xs`}>
+            <p className={text.hint}>
               Higher MOE weight favors robustness; higher derivative weights favor smoother exit speed/angle vs distance.
             </p>
             <div className="flex flex-nowrap items-center gap-x-4 gap-y-2 overflow-x-auto pb-0.5">
@@ -275,7 +274,7 @@ export default function TrajectoryOptimalAnalysis({
             </div>
           </div>
           <div className={`flex flex-col ${CHART_PANEL_MIN_H}`}>
-            <div className="flex-shrink-0 px-4 pt-2 text-xs font-medium text-gray-400">Velocity buffer vs distance</div>
+            <div className={`flex-shrink-0 px-4 pt-2 ${text.chartTitle}`}>Velocity buffer vs distance</div>
             <div className="h-[32rem]">
               <DualAxisDistanceChart
                 points={velocityBufferPoints}
@@ -283,7 +282,7 @@ export default function TrajectoryOptimalAnalysis({
                 hideRightAxis
                 leftLegend="Low arc buffer (m/s)"
                 leftExtraLegend="High arc buffer (m/s)"
-                leftExtraColor={DUAL_AXIS_LEFT_EXTRA_COLOR}
+                leftExtraColor={plot.seriesPrimaryAlt}
                 rightLegend=""
                 leftAxisTitle="Velocity buffer (m/s)"
                 rightAxisTitle=""
@@ -305,13 +304,13 @@ export default function TrajectoryOptimalAnalysis({
                 emptyMessage="No optimal trajectories to plot."
                 renderTooltip={(p) => (
                   <>
-                    <div className="text-gray-400 text-center mb-1">dx = {p.dx.toFixed(3)} m</div>
-                    <div className="text-gray-300">
-                      Low arc buffer <span className="font-mono" style={{ color: DUAL_AXIS_LEFT_COLOR }}>{p.left.toFixed(3)} m/s</span>
+                    <div className={`${text.meta} text-center mb-1`}>dx = {p.dx.toFixed(3)} m</div>
+                    <div className={text.meta}>
+                      Low arc buffer <span className={text.mono} style={{ color: plot.seriesPrimary }}>{p.left.toFixed(3)} m/s</span>
                     </div>
                     {p.leftExtra !== undefined && (
-                      <div className="text-gray-300">
-                        High arc buffer <span className="font-mono" style={{ color: DUAL_AXIS_LEFT_EXTRA_COLOR }}>{p.leftExtra.toFixed(3)} m/s</span>
+                      <div className={text.meta}>
+                        High arc buffer <span className={text.mono} style={{ color: plot.seriesPrimaryAlt }}>{p.leftExtra.toFixed(3)} m/s</span>
                       </div>
                     )}
                   </>
@@ -323,7 +322,7 @@ export default function TrajectoryOptimalAnalysis({
             <button
               type="button"
               onClick={onSaveOptimalTrajectories}
-              className="h-8 px-4 rounded bg-blue-700 text-sm font-medium text-white hover:bg-blue-600"
+              className={button.primary}
             >
               Save
             </button>
@@ -338,7 +337,7 @@ export default function TrajectoryOptimalAnalysis({
       />
       {analysisExpanded && (
         <section className="flex flex-col">
-          <div className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-gray-800">
+          <div className="flex flex-wrap items-center gap-3 px-4 py-2 border-b border-edge">
             <SegmentedToggle
               value={arcMode}
               options={[
@@ -348,9 +347,9 @@ export default function TrajectoryOptimalAnalysis({
               onChange={setArcMode}
             />
           </div>
-          <div className={`flex-1 min-w-0 flex flex-col border-b border-gray-800 ${CHART_PANEL_MIN_H}`}>
+          <div className={`flex-1 min-w-0 flex flex-col border-b border-edge ${CHART_PANEL_MIN_H}`}>
             <div className="flex-shrink-0 px-4 pt-2 space-y-1.5">
-              <div className="text-xs font-medium text-gray-400">Exit speed &amp; angle vs distance</div>
+              <div className={text.chartTitle}>Exit speed &amp; angle vs distance</div>
               <SegmentedToggle
                 value={sequenceMode}
                 options={[
@@ -377,11 +376,11 @@ export default function TrajectoryOptimalAnalysis({
                   }}
                   renderTooltip={(p) => (
                     <>
-                      <div className="text-gray-400 text-center mb-1">dx = {p.dx.toFixed(3)} m</div>
-                      <div className="text-gray-300">Exit speed <span className="font-mono" style={{ color: DUAL_AXIS_LEFT_COLOR }}>{p.left.toFixed(3)} m/s</span></div>
-                      <div className="text-gray-300">Exit angle <span className="font-mono" style={{ color: DUAL_AXIS_RIGHT_COLOR }}>{p.right.toFixed(2)} deg</span></div>
+                      <div className={`${text.meta} text-center mb-1`}>dx = {p.dx.toFixed(3)} m</div>
+                      <div className={text.meta}>Exit speed <span className={text.mono} style={{ color: plot.seriesPrimary }}>{p.left.toFixed(3)} m/s</span></div>
+                      <div className={text.meta}>Exit angle <span className={text.mono} style={{ color: plot.seriesSecondary }}>{p.right.toFixed(2)} deg</span></div>
                       {p.velocityBuffer !== undefined && (
-                        <div className="text-gray-300">Vel buffer <span className="font-mono">{p.velocityBuffer.toFixed(3)} m/s</span></div>
+                        <div className={text.meta}>Vel buffer <span className={text.mono}>{p.velocityBuffer.toFixed(3)} m/s</span></div>
                       )}
                     </>
                   )}
@@ -397,9 +396,9 @@ export default function TrajectoryOptimalAnalysis({
                   emptyMessage="Need optimal trajectories at two or more goal distances for derivatives."
                   renderTooltip={(p) => (
                     <>
-                      <div className="text-gray-400 text-center mb-1">dx = {p.dx.toFixed(3)} m</div>
-                      <div className="text-gray-300">d(speed)/d(distance) <span className="font-mono" style={{ color: DUAL_AXIS_LEFT_COLOR }}>{p.left.toFixed(4)} (m/s)/m</span></div>
-                      <div className="text-gray-300">d(angle)/d(distance) <span className="font-mono" style={{ color: DUAL_AXIS_RIGHT_COLOR }}>{p.right.toFixed(4)} deg/m</span></div>
+                      <div className={`${text.meta} text-center mb-1`}>dx = {p.dx.toFixed(3)} m</div>
+                      <div className={text.meta}>d(speed)/d(distance) <span className={text.mono} style={{ color: plot.seriesPrimary }}>{p.left.toFixed(4)} (m/s)/m</span></div>
+                      <div className={text.meta}>d(angle)/d(distance) <span className={text.mono} style={{ color: plot.seriesSecondary }}>{p.right.toFixed(4)} deg/m</span></div>
                     </>
                   )}
                 />
@@ -407,7 +406,7 @@ export default function TrajectoryOptimalAnalysis({
             </div>
           </div>
           <div className={`flex-1 min-w-0 flex flex-col ${CHART_PANEL_MIN_H}`}>
-            <div className="flex-shrink-0 px-4 pt-2 text-xs font-medium text-gray-400">MOE vs distance</div>
+            <div className={`flex-shrink-0 px-4 pt-2 ${text.chartTitle}`}>MOE vs distance</div>
             <div className="h-[32rem]">
               <DualAxisDistanceChart
                 points={moePoints}
@@ -420,9 +419,9 @@ export default function TrajectoryOptimalAnalysis({
                 emptyMessage="No optimal trajectories with MOE data."
                 renderTooltip={(p) => (
                   <>
-                    <div className="text-gray-400 text-center mb-1">dx = {p.dx.toFixed(3)} m</div>
-                    <div className="text-gray-300">Speed MOE <span className="font-mono" style={{ color: DUAL_AXIS_LEFT_COLOR }}>{p.left.toFixed(3)} m/s</span></div>
-                    <div className="text-gray-300">Angle MOE (min) <span className="font-mono" style={{ color: DUAL_AXIS_RIGHT_COLOR }}>{p.right.toFixed(2)} deg</span></div>
+                    <div className={`${text.meta} text-center mb-1`}>dx = {p.dx.toFixed(3)} m</div>
+                    <div className={text.meta}>Speed MOE <span className={text.mono} style={{ color: plot.seriesPrimary }}>{p.left.toFixed(3)} m/s</span></div>
+                    <div className={text.meta}>Angle MOE (min) <span className={text.mono} style={{ color: plot.seriesSecondary }}>{p.right.toFixed(2)} deg</span></div>
                   </>
                 )}
               />

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { panelItemTitle } from './panelStyles';
+import { overlay } from '../styles/theme';
 
 interface Props {
   title: string;
@@ -19,11 +19,11 @@ export default function ModalDialog({
   maxWidthClass = 'max-w-sm',
 }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className={overlay.container}>
       {onDismiss && (
         <button
           type="button"
-          className="absolute inset-0 bg-black/60"
+          className={overlay.scrim}
           aria-label={dismissAriaLabel}
           onClick={onDismiss}
         />
@@ -32,9 +32,9 @@ export default function ModalDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`relative w-full ${maxWidthClass} rounded-xl border border-gray-600 bg-gray-900 p-5 shadow-xl`}
+        className={`${overlay.dialog} ${maxWidthClass}`}
       >
-        <h2 id={titleId} className={`${panelItemTitle} mb-1`}>
+        <h2 id={titleId} className={overlay.dialogTitle}>
           {title}
         </h2>
         {children}

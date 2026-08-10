@@ -4,7 +4,7 @@ import ModalDialog from './ModalDialog';
 import { configFileNameForVideo } from '../utils/projectIO';
 import { parseConfigurationFile, type LoadedConfiguration } from '../utils/trajectorySegments';
 import type { VideoData } from '../types';
-import { panelBtnPrimary, panelHint, panelMeta, panelMono } from './panelStyles';
+import { button, feedback, text } from '../styles/theme';
 
 interface Props {
   video: VideoData;
@@ -41,11 +41,11 @@ export default function VideoOptionsDialog({ video, onAttachConfig, onEditSettin
 
   return (
     <ModalDialog title={video.name} onDismiss={onDismiss} maxWidthClass="max-w-md">
-      <p className={`${panelHint} mb-3`}>
+      <p className={`${text.hint} mb-3`}>
         Select this video for labeling, or attach a saved configuration to load trajectory points and meterstick data.
       </p>
-      <p className={`${panelMeta} mb-4`}>
-        Expected config name: <span className={panelMono}>{expectedConfigName}</span>
+      <p className={`${text.meta} mb-4`}>
+        Expected config name: <span className={text.mono}>{expectedConfigName}</span>
       </p>
 
       <input
@@ -60,7 +60,7 @@ export default function VideoOptionsDialog({ video, onAttachConfig, onEditSettin
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className={`w-full ${panelBtnPrimary} bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white`}
+          className={`${button.secondary} ${button.block}`}
         >
           <FileUp size={16} />
           Attach config file
@@ -68,7 +68,7 @@ export default function VideoOptionsDialog({ video, onAttachConfig, onEditSettin
         <button
           type="button"
           onClick={onEditSettings}
-          className={`w-full ${panelBtnPrimary} bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white`}
+          className={`${button.secondary} ${button.block}`}
         >
           <Settings size={16} />
           Edit video settings
@@ -76,14 +76,14 @@ export default function VideoOptionsDialog({ video, onAttachConfig, onEditSettin
         <button
           type="button"
           onClick={onDismiss}
-          className={`w-full ${panelBtnPrimary} bg-blue-600 hover:bg-blue-500 text-white`}
+          className={`${button.primary} ${button.block}`}
         >
           Continue without config
         </button>
       </div>
 
       {status && (
-        <p className={`mt-3 text-xs leading-snug ${status.ok ? 'text-green-400' : 'text-red-400'}`}>
+        <p className={`mt-3 ${feedback.status(status.ok)}`}>
           {status.text}
         </p>
       )}

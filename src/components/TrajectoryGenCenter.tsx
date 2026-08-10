@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TrajGenParams, TrajGroup } from '../types';
 import type { TrajectoryMoe } from '../simulation';
-import { panelTab } from './panelStyles';
+import { tab } from '../styles/theme';
 import { CheckboxLabel } from './Checkbox';
 import TrajectoryGenCanvas from './TrajectoryGenCanvas';
 import TrajectoryOptimalAnalysis from './TrajectoryOptimalAnalysis';
@@ -61,14 +61,14 @@ export default function TrajectoryGenCenter({
   const [centerTab, setCenterTab] = useState<CenterTab>('visualizer');
 
   return (
-    <main className="flex flex-1 min-w-0 min-h-0 bg-gray-950 flex-col">
-      <div className="flex-shrink-0 flex border-b border-gray-700 bg-gray-900/50">
+    <main className="flex flex-1 min-w-0 min-h-0 bg-surface-sunken flex-col">
+      <div className={tab.paneBar}>
         {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setCenterTab(t.id)}
-            className={panelTab(centerTab === t.id)}
+            className={tab.pane(centerTab === t.id)}
           >
             {t.label}
           </button>
@@ -77,20 +77,18 @@ export default function TrajectoryGenCenter({
       <div className="flex-1 min-h-0 min-w-0 relative flex flex-col">
         {centerTab === 'visualizer' && (
           <>
-            <div className="flex-shrink-0 flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 border-b border-gray-800 bg-gray-900/30">
+            <div className="flex-shrink-0 flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 border-b border-edge bg-surface-panel">
               <CheckboxLabel
                 checked={showAll}
                 disabled={groups.length === 0}
                 onChange={onShowAllChange}
                 label="Show all"
-                labelClassName="text-sm text-gray-400"
               />
               <CheckboxLabel
                 checked={showAllOptimalTrajectories}
                 disabled={groups.length === 0}
                 onChange={onShowAllOptimalTrajectoriesChange}
                 label="Show all optimal"
-                labelClassName="text-sm text-gray-400"
                 color="green"
               />
               <CheckboxLabel
@@ -98,7 +96,6 @@ export default function TrajectoryGenCenter({
                 disabled={groups.length === 0}
                 onChange={onShowOptimalTrajectoriesChange}
                 label="Show optimal"
-                labelClassName="text-sm text-gray-400"
                 color="green"
               />
               <CheckboxLabel
@@ -106,17 +103,15 @@ export default function TrajectoryGenCenter({
                 disabled={groups.length === 0}
                 onChange={onShowLowestSpeedTrajectoriesChange}
                 label="Show lowest speed"
-                labelClassName="text-sm text-gray-400"
               />
               <CheckboxLabel
                 checked={params.showGoalPlanes}
                 disabled={groups.length === 0}
                 onChange={(checked) => onParamsChange({ ...params, showGoalPlanes: checked })}
                 label="Show goal planes"
-                labelClassName="text-sm text-gray-400"
               />
             </div>
-            <div className="flex-1 min-h-0 min-w-0 relative">
+            <div className="flex-1 min-h-0 min-w-0 relative bg-surface">
               <TrajectoryGenCanvas
                 params={params}
                 groups={groups}

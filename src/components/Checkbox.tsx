@@ -1,10 +1,10 @@
-import { panelCheckboxBlue, panelCheckboxGreen, panelLabelInline } from './panelStyles';
+import { control, text } from '../styles/theme';
 
 export type CheckboxColor = 'blue' | 'green';
 
 const checkboxColorClass: Record<CheckboxColor, string> = {
-  blue: panelCheckboxBlue,
-  green: panelCheckboxGreen,
+  blue: control.checkbox,
+  green: control.checkboxPositive,
 };
 
 export interface CheckboxProps {
@@ -45,7 +45,7 @@ export interface CheckboxLabelProps extends CheckboxProps {
 
 export function CheckboxLabel({
   label,
-  labelClassName = panelLabelInline,
+  labelClassName = text.labelInline,
   wrapperClassName = '',
   disabled = false,
   title,
@@ -54,8 +54,8 @@ export function CheckboxLabel({
   return (
     <label
       title={title}
-      className={`flex items-center gap-2 select-none ${
-        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+      className={`${
+        disabled ? control.checkboxRowDisabled : control.checkboxRow
       } ${wrapperClassName}`.trim()}
     >
       <Checkbox disabled={disabled} {...checkboxProps} />

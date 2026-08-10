@@ -4,10 +4,7 @@ import { LaunchParams, TrajectoryPoint } from '../types';
 import { fitDragMagnusAsync, GRAVITY_MS2, SIM_DT, DEFAULT_FIT_GRID_CONFIG, DEFAULT_FIT_TARGET_PARAMS, FitProgress, FitRankEntry, FitTargetParams, computeFitTotalEvals, computeTrajectoryFitCost, type PixelsPerMeterSource } from '../simulation';
 import { countPlottedPoints, plottedPoints } from '../utils/trajectorySegments';
 import { MeterstickScale } from '../utils/meterstickScale';
-import {
-  panelAside, panelContent, panelSectionTitle, panelSubsectionTitle, panelLabelInline, panelBody, panelHint,
-  panelInputNumeric, panelBtnPrimary,
-} from './panelStyles';
+import { layout, text, button, input, control, table } from '../styles/theme';
 import { ProgressBar } from './ProgressBar';
 import { Checkbox, CheckboxLabel } from './Checkbox';
 
@@ -73,7 +70,7 @@ function SliderRow({ label, unit, value, min, max, step, disabled, onChange }: S
   return (
     <div className={`space-y-1.5 ${disabled ? 'opacity-50' : ''}`}>
       <div className="flex items-center justify-between gap-2">
-        <label className={panelLabelInline}>{label}</label>
+        <label className={text.labelInline}>{label}</label>
         <div className="flex items-center gap-1">
           <input
             type="text"
@@ -84,9 +81,9 @@ function SliderRow({ label, unit, value, min, max, step, disabled, onChange }: S
             onFocus={() => setFocused(true)}
             onBlur={(e) => { setFocused(false); commit(e.target.value); }}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            className={panelInputNumeric}
+            className={input.numeric}
           />
-          <span className={`${panelHint} w-8`}>{unit}</span>
+          <span className={`${text.hint} w-8`}>{unit}</span>
         </div>
       </div>
       <input
@@ -97,7 +94,7 @@ function SliderRow({ label, unit, value, min, max, step, disabled, onChange }: S
         value={value}
         disabled={disabled}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="w-full h-1.5 accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
+        className={control.sliderNative}
       />
     </div>
   );
@@ -156,7 +153,7 @@ function FitParamRow({
   return (
     <div className={`flex items-center gap-2 ${inactive ? 'opacity-50' : ''}`}>
       <Checkbox checked={checked} disabled={disabled} onChange={() => onToggle()} />
-      <span className={`${panelHint} shrink-0 w-[4.5rem] text-gray-300`}>{label}</span>
+      <span className={`${text.meta} shrink-0 w-[4.5rem]`}>{label}</span>
       <input
         type="text"
         inputMode="decimal"
@@ -167,9 +164,9 @@ function FitParamRow({
         onFocus={() => setFocusedMin(true)}
         onBlur={(e) => { setFocusedMin(false); commitMin(e.target.value); }}
         onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-        className={`${panelInputNumeric} flex-1 min-w-0 disabled:cursor-not-allowed`}
+        className={`${input.numeric} flex-1 min-w-0`}
       />
-      <span className={`${panelHint} shrink-0`}>–</span>
+      <span className={`${text.meta} shrink-0`}>–</span>
       <input
         type="text"
         inputMode="decimal"
@@ -180,7 +177,7 @@ function FitParamRow({
         onFocus={() => setFocusedMax(true)}
         onBlur={(e) => { setFocusedMax(false); commitMax(e.target.value); }}
         onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-        className={`${panelInputNumeric} flex-1 min-w-0 disabled:cursor-not-allowed`}
+        className={`${input.numeric} flex-1 min-w-0`}
       />
     </div>
   );
@@ -547,20 +544,16 @@ export default function SimulationControls({
   }
 
   return (
-    <aside className={`${panelAside} border-l border-gray-700`} style={{ width }}>
-      <div className={panelContent}>
+    <aside className={`${layout.panel} ${layout.panelBorderLeft}`} style={{ width }}>
+      <div className={layout.panelScroll}>
       <div>
-        <h2 className={`${panelSectionTitle} mb-4`}>
+        <h2 className={`${text.sectionTitle} mb-4`}>
           Simulation
         </h2>
 
         <button
           onClick={onToggleShow}
-          className={`w-full ${panelBtnPrimary} mb-5 ${
-            showSimulation
-              ? 'bg-green-600 hover:bg-green-500 text-white'
-              : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
-          }`}
+          className={`${button.toggle(showSimulation)} ${button.block} mb-5`}
         >
           {showSimulation ? <Eye size={16} /> : <EyeOff size={16} />}
           {showSimulation ? 'Hide Simulation' : 'Show Simulation'}
@@ -568,13 +561,13 @@ export default function SimulationControls({
 
         <div className="mb-5 space-y-4">
           {activeTrajectoryName && (
-            <p className={panelHint}>
+            <p className={text.hint}>
               Saved per trajectory · editing{' '}
-              <span className="text-gray-300">{activeTrajectoryName}</span>
+              <span className={text.emphasis}>{activeTrajectoryName}</span>
             </p>
           )}
           <div>
-            <h3 className={`${panelSubsectionTitle} mb-3`}>Launch conditions</h3>
+            <h3 className={`${text.subsectionTitle} mb-3`}>Launch conditions</h3>
             <div className="space-y-5">
               <SliderRow
                 label="Exit Velocity"
@@ -598,14 +591,14 @@ export default function SimulationControls({
               />
             </div>
             {!hasTrajectory && (
-              <p className={`${panelHint} mt-3 text-center`}>
+              <p className={`${text.hint} mt-3 text-center`}>
                 Select or plot a trajectory to set launch conditions
               </p>
             )}
           </div>
 
-          <div className="pt-4 border-t border-gray-700 space-y-5">
-            <h3 className={panelSubsectionTitle}>Physics model</h3>
+          <div className={`pt-4 ${layout.divider} space-y-5`}>
+            <h3 className={text.subsectionTitle}>Physics model</h3>
 
             <SliderRow
               label="Drag Coefficient"
@@ -640,7 +633,7 @@ export default function SimulationControls({
 
             <div className="space-y-2">
               <div className="space-y-2">
-                <label className={`${panelHint} block`}>Fit parameters</label>
+                <label className={`${text.hint} block`}>Fit parameters</label>
                 <FitParamRow
                   label="Exit vel"
                   checked={fitTargets.fitExitVelocity}
@@ -698,7 +691,7 @@ export default function SimulationControls({
                 disabled={!hasTrajectory || fitStatus === 'running' || fitAllVideos}
                 onChange={(v) => setFitWholeVideo(v)}
                 label={`Fit whole video${fittableTrajectories.length > 0 ? ` (${fittableTrajectories.length})` : ''}`}
-                labelClassName={`${panelHint} text-gray-300`}
+                labelClassName={text.meta}
                 wrapperClassName={!hasTrajectory ? 'opacity-50' : ''}
               />
 
@@ -707,13 +700,13 @@ export default function SimulationControls({
                 disabled={fitStatus === 'running' || !videosAvailable}
                 onChange={(v) => setFitAllVideos(v)}
                 label={`Fit all videos${fittableAllVideosTrajectories.length > 0 ? ` (${fittableAllVideosTrajectories.length})` : ''}`}
-                labelClassName={`${panelHint} text-gray-300`}
+                labelClassName={text.meta}
                 wrapperClassName={videosAvailable ? '' : 'opacity-50'}
               />
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className={panelHint}>Grid splits</label>
+                  <label className={text.hint}>Grid splits</label>
                   <input
                     type="number"
                     min={2}
@@ -722,11 +715,11 @@ export default function SimulationControls({
                     value={fitNumSplits}
                     disabled={!hasTrajectory || fitStatus === 'running'}
                     onChange={(e) => setFitNumSplits(Math.max(2, Math.min(100, parseInt(e.target.value, 10) || 2)))}
-                    className={panelInputNumeric}
+                    className={input.numeric}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className={panelHint}>Recursions</label>
+                  <label className={text.hint}>Recursions</label>
                   <input
                     type="number"
                     min={1}
@@ -735,12 +728,12 @@ export default function SimulationControls({
                     value={fitNumRecursions}
                     disabled={!hasTrajectory || fitStatus === 'running'}
                     onChange={(e) => setFitNumRecursions(Math.max(1, Math.min(10, parseInt(e.target.value, 10) || 1)))}
-                    className={panelInputNumeric}
+                    className={input.numeric}
                   />
                 </div>
               </div>
 
-              <p className={`${panelHint} text-center tabular-nums`}>
+              <p className={`${text.hint} text-center tabular-nums`}>
                 {fitDimensions === 0
                   ? 'Select at least one parameter to fit'
                   : `${fitTotalEvals.toLocaleString()} simulation${fitTotalEvals === 1 ? '' : 's'} required`}
@@ -750,11 +743,7 @@ export default function SimulationControls({
                 <button
                   onClick={handleFit}
                   disabled={!canFit || fitStatus === 'running'}
-                  className={`flex-1 ${panelBtnPrimary} ${
-                    canFit && fitStatus !== 'running'
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                      : 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  }`}
+                  className={`flex-1 ${button.primary}`}
                 >
                   <Zap size={16} className={fitStatus === 'running' ? 'animate-pulse' : ''} />
                   {fitStatus === 'running' ? 'Fitting...' : 'Fit to Trajectory'}
@@ -762,7 +751,7 @@ export default function SimulationControls({
                 {fitStatus === 'running' && (
                   <button
                     onClick={handleCancel}
-                    className="flex items-center justify-center px-3 py-2.5 rounded-lg bg-gray-700 hover:bg-red-700 text-gray-300 hover:text-white transition-colors"
+                    className={button.dangerSubtle}
                     title="Cancel fitting"
                   >
                     <X size={15} />
@@ -770,52 +759,52 @@ export default function SimulationControls({
                 )}
               </div>
 
-              <div className="space-y-0.5 tabular-nums">
-                <p className={`${panelHint} flex justify-between gap-2`}>
+              <div className="space-y-0.5">
+                <p className={`${text.meta} flex justify-between gap-2`}>
                   <span>Visible avg error</span>
-                  <span className="text-gray-300">{formatMeanError(trajectoryCosts.visible)}</span>
+                  <span className={text.value}>{formatMeanError(trajectoryCosts.visible)}</span>
                 </p>
-                <p className={`${panelHint} flex justify-between gap-2`}>
+                <p className={`${text.meta} flex justify-between gap-2`}>
                   <span>Avg error (all)</span>
-                  <span className="text-gray-300">{formatMeanError(trajectoryCosts.average)}</span>
+                  <span className={text.value}>{formatMeanError(trajectoryCosts.average)}</span>
                 </p>
               </div>
 
               {topFits.length > 0 && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={panelHint}>Top {topFits.length} fits</p>
+                    <p className={text.hint}>Top {topFits.length} fits</p>
                     <button
                       type="button"
                       onClick={handleCopyTopFits}
-                      className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-800 hover:bg-gray-700 text-gray-300 text-[11px] transition-colors"
+                      className={`${button.secondary} ${button.compact}`}
                       title="Copy fits to clipboard"
                     >
                       <Copy size={12} />
                       Copy
                     </button>
                   </div>
-                  <div className="max-h-48 overflow-y-auto rounded-lg border border-gray-700">
+                  <div className="max-h-48 overflow-y-auto rounded-lg border border-edge">
                     <table className="w-full text-[11px] tabular-nums">
-                      <thead className="sticky top-0 bg-gray-900 text-gray-400">
+                      <thead className={table.nativeHead}>
                         <tr>
-                          <th className="px-1.5 py-1 text-left font-normal">#</th>
-                          <th className="px-1.5 py-1 text-right font-normal">Vis err</th>
-                          <th className="px-1.5 py-1 text-right font-normal">Vel</th>
-                          <th className="px-1.5 py-1 text-right font-normal">Ang</th>
-                          <th className="px-1.5 py-1 text-right font-normal">Drag</th>
-                          <th className="px-1.5 py-1 text-right font-normal">Magn</th>
+                          <th className={`${table.nativeHeadCell} text-left font-normal`}>#</th>
+                          <th className={`${table.nativeHeadCell} text-right font-normal`}>Vis err</th>
+                          <th className={`${table.nativeHeadCell} text-right font-normal`}>Vel</th>
+                          <th className={`${table.nativeHeadCell} text-right font-normal`}>Ang</th>
+                          <th className={`${table.nativeHeadCell} text-right font-normal`}>Drag</th>
+                          <th className={`${table.nativeHeadCell} text-right font-normal`}>Magn</th>
                         </tr>
                       </thead>
-                      <tbody className="text-gray-300">
+                      <tbody>
                         {topFits.map((fit) => (
-                          <tr key={fit.rank} className="border-t border-gray-800">
-                            <td className="px-1.5 py-1 text-left text-gray-400">{fit.rank}</td>
-                            <td className="px-1.5 py-1 text-right">{formatMeanError(fit.visibleMeanDistance)}</td>
-                            <td className="px-1.5 py-1 text-right">{formatFitValue(fit.exitVelocity)}</td>
-                            <td className="px-1.5 py-1 text-right">{formatFitValue(fit.exitAngle)}</td>
-                            <td className="px-1.5 py-1 text-right">{formatFitValue(fit.dragCoefficient)}</td>
-                            <td className="px-1.5 py-1 text-right">{formatFitValue(fit.magnusGain)}</td>
+                          <tr key={fit.rank} className={table.nativeRow}>
+                            <td className={`${table.nativeCellMuted} text-left`}>{fit.rank}</td>
+                            <td className={`${table.nativeCell} text-right`}>{formatMeanError(fit.visibleMeanDistance)}</td>
+                            <td className={`${table.nativeCell} text-right`}>{formatFitValue(fit.exitVelocity)}</td>
+                            <td className={`${table.nativeCell} text-right`}>{formatFitValue(fit.exitAngle)}</td>
+                            <td className={`${table.nativeCell} text-right`}>{formatFitValue(fit.dragCoefficient)}</td>
+                            <td className={`${table.nativeCell} text-right`}>{formatFitValue(fit.magnusGain)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -836,7 +825,7 @@ export default function SimulationControls({
               )}
 
               {fitStatus !== 'running' && !canFit && (
-                <p className={`${panelHint} text-center`}>
+                <p className={`${text.hint} text-center`}>
                   {!hasTrajectory
                     ? 'Select a trajectory first'
                     : fitAllVideos && fittableAllVideosTrajectories.length === 0
@@ -855,7 +844,7 @@ export default function SimulationControls({
                 </p>
               )}
               {fitStatus === 'fail' && (
-                <p className="text-sm text-red-400 text-center">
+                <p className={`${text.critical} text-center`}>
                   Could not fit — check scale and velocity
                 </p>
               )}
@@ -864,15 +853,15 @@ export default function SimulationControls({
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-700 space-y-2">
-        <h3 className={panelSectionTitle}>Physics</h3>
-        <p className={panelBody}>
+      <div className={`pt-4 ${layout.divider} space-y-2`}>
+        <h3 className={text.sectionTitle}>Physics</h3>
+        <p className={text.body}>
           g = {GRAVITY_MS2} m/s²<br />
           F<sub>drag</sub> = b · v²<br />
           F<sub>magnus</sub> = k · v<sup>x</sup> · (v̂<sub>⊥</sub>), +k = backspin<br />
           dt = {SIM_DT * 1000} ms timestep
         </p>
-        <p className={panelBody}>
+        <p className={text.body}>
           Launch point is the first plotted point. Drag the yellow meterstick on the video — each pair of points spans 1 m. Right-click to add/remove points.
         </p>
       </div>

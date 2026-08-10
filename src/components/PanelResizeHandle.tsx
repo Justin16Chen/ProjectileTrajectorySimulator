@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import { chrome } from '../styles/theme';
 
 interface Props {
   orientation?: 'horizontal' | 'vertical';
@@ -58,14 +59,12 @@ export default function PanelResizeHandle({
     <div
       role="separator"
       aria-orientation={isHorizontal ? 'horizontal' : 'vertical'}
-      className={`group flex-shrink-0 select-none ${isHorizontal ? 'h-2 cursor-row-resize' : 'w-2 cursor-col-resize'} ${className}`}
+      className={`${chrome.resizeHandle} ${isHorizontal ? 'h-2 cursor-row-resize' : 'w-2 cursor-col-resize'} ${className}`}
       onPointerDown={startDrag}
     >
-      <div className={`h-full w-full transition-colors ${isHorizontal ? 'py-[3px]' : 'px-[3px]'}`}>
+      <div className={`h-full w-full ${isHorizontal ? 'py-[3px]' : 'px-[3px]'}`}>
         <div
-          className={`bg-gray-700 group-hover:bg-blue-500/70 ${
-            isHorizontal ? 'h-px w-full' : 'h-full w-px'
-          }`}
+          className={`${chrome.resizeGrip} ${isHorizontal ? 'h-px w-full' : 'h-full w-px'}`}
         />
       </div>
     </div>

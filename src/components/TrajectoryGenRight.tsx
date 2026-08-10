@@ -6,9 +6,9 @@ import {
   REFINE_MAX_ITER, REFINE_THRESHOLD_M, RAW_TRAJECTORY_ERROR_TOLERANCE, resolveMagnusPower, formatMoeBounds, formatSpeedMoeBounds, type TrajectoryMoe, type MoeRecalcProgress,
 } from '../simulation';
 import {
-  panelAside, panelSectionTitle, panelBtnPrimary,
-  panelEmpty, panelHint, panelMeta, panelMono, panelSubsectionTitle, panelInput,
-} from './panelStyles';
+  layout, text, button, input, tab, table, badge, overlay, feedback,
+  type TableRowState,
+} from '../styles/theme';
 import { ProgressBar } from './ProgressBar';
 import { isUnsuccessfulTrajectory } from '../utils/trajGenStatus';
 import PanelResizeHandle from './PanelResizeHandle';
@@ -107,8 +107,8 @@ function ErrorToleranceInput({
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className={panelSubsectionTitle}>Error Tolerance</label>
-            <span className={panelMeta}>m</span>
+            <label className={text.subsectionTitle}>Error Tolerance</label>
+            <span className={text.meta}>m</span>
           </div>
           <input
             type="text"
@@ -118,13 +118,13 @@ function ErrorToleranceInput({
             onFocus={() => setTolFocused(true)}
             onBlur={(e) => { setTolFocused(false); commitTolerance(e.target.value); }}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            className={`${panelInput} w-full min-w-0`}
+            className={`${input.text} min-w-0`}
           />
         </div>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className={panelSubsectionTitle}>Goal Plane Angle</label>
-            <span className={panelMeta}>deg</span>
+            <label className={text.subsectionTitle}>Goal Plane Angle</label>
+            <span className={text.meta}>deg</span>
           </div>
           <input
             type="text"
@@ -134,7 +134,7 @@ function ErrorToleranceInput({
             onFocus={() => setAngleFocused(true)}
             onBlur={(e) => { setAngleFocused(false); commitAngle(e.target.value); }}
             onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-            className={`${panelInput} w-full min-w-0`}
+            className={`${input.text} min-w-0`}
           />
         </div>
       </div>
@@ -142,11 +142,7 @@ function ErrorToleranceInput({
         type="button"
         onClick={handleRecalculate}
         disabled={recalcDisabled || recalculating}
-        className={`w-full px-2.5 py-1.5 text-sm rounded border transition-colors ${
-          recalcDisabled || recalculating
-            ? 'border-gray-700 bg-gray-800 text-gray-500 cursor-not-allowed'
-            : 'border-gray-600 bg-gray-700 hover:bg-gray-600 text-white'
-        }`}
+        className={`${button.secondary} ${button.block}`}
       >
         {recalculating ? 'Recalculating…' : 'Recalculate'}
       </button>
@@ -154,7 +150,7 @@ function ErrorToleranceInput({
         <ProgressBar
           className="pt-1"
           progress={recalcProgress?.progress ?? 0}
-          fillClassName="bg-green-500"
+          fillClassName={feedback.progressFillPositive}
           detail={
             recalcProgress
               ? `Trajectory ${recalcProgress.current.toLocaleString()} / ${recalcProgress.total.toLocaleString()}`
@@ -505,22 +501,22 @@ export default function TrajectoryGenRight({
   };
 
   return (
-    <aside className={`${panelAside} border-l border-gray-700`} style={{ width }}>
+    <aside className={`${layout.panel} ${layout.panelBorderLeft}`} style={{ width }}>
 
       {/* Title */}
-      <div className="flex-shrink-0 px-4 pt-3 pb-2 border-b border-gray-700">
+      <div className="flex-shrink-0 px-4 pt-3 pb-2 border-b border-edge">
         <div className="flex items-center justify-between">
-          <h2 className={panelSectionTitle}>Trajectories</h2>
-          <span className={`text-sm ${panelMono} bg-blue-900/40 text-blue-300 px-2 py-0.5 rounded-full`}>
+          <h2 className={text.sectionTitle}>Trajectories</h2>
+          <span className={`${badge.total} ${text.mono}`}>
             {totalTrajectoryCount}
           </span>
         </div>
       </div>
 
       {/* Group tabs */}
-      <div className="flex-shrink-0 border-b border-gray-700 overflow-x-auto">
+      <div className={tab.groupBar}>
         {groups.length === 0 ? (
-          <div className={`px-4 py-2 ${panelHint} italic`}>No trajectory groups yet</div>
+          <div className={`px-4 py-2 ${text.hint} italic`}>No trajectory groups yet</div>
         ) : (
           <div className="flex min-w-max">
             {groups.map(g => {
@@ -528,21 +524,21 @@ export default function TrajectoryGenRight({
               return (
                 <div
                   key={g.id}
-                  className={`flex items-center gap-1 border-r border-gray-700 group/tab ${isActive ? 'bg-gray-800' : 'bg-gray-900 hover:bg-gray-800/60'}`}
+                  className={`${tab.group(isActive)} group/tab`}
                 >
                   <button
                     onClick={() => onSelectGroup(g.id)}
-                    className={`px-2.5 py-2 text-sm ${panelMono} whitespace-nowrap transition-colors ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                    className={tab.groupLabel(isActive)}
                   >
                     {tabLabel(g)}
-                    <span className={`ml-1.5 font-sans px-1.5 py-0.5 rounded text-xs ${isActive ? 'bg-blue-900/60 text-blue-300' : 'bg-gray-800 text-gray-600'}`}>
+                    <span className={`ml-1.5 font-sans ${badge.count(isActive)}`}>
                       {g.trajectories.length}
                     </span>
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteGroup(g.id); }}
                     title="Delete group"
-                    className="mr-1.5 w-4 h-4 flex items-center justify-center text-gray-700 hover:text-red-400 opacity-0 group-hover/tab:opacity-100 transition-all rounded"
+                    className={`${button.iconGhostDanger} mr-1.5 w-4 h-4 opacity-0 transition-opacity group-hover/tab:opacity-100`}
                   >
                     <X size={10} />
                   </button>
@@ -555,20 +551,20 @@ export default function TrajectoryGenRight({
 
       {/* Selected group meta */}
       {group && (
-        <div className="flex-shrink-0 px-4 py-2 border-b border-gray-700 flex gap-4">
+        <div className="flex-shrink-0 px-4 py-2 border-b border-edge flex gap-4">
           <div className="flex items-center gap-1.5">
-            <span className={panelMeta}>Drag</span>
-            <span className={`text-sm ${panelMono} text-gray-400`}>{drag}</span>
+            <span className={text.meta}>Drag</span>
+            <span className={`text-sm ${text.value}`}>{drag}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className={panelMeta}>Magnus</span>
-            <span className={`text-sm ${panelMono} text-gray-400`}>{magnus}</span>
+            <span className={text.meta}>Magnus</span>
+            <span className={`text-sm ${text.value}`}>{magnus}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className={panelMeta}>Magnus Power</span>
-            <span className={`text-sm ${panelMono} text-gray-400`}>{magnusPower}</span>
+            <span className={text.meta}>Magnus Power</span>
+            <span className={`text-sm ${text.value}`}>{magnusPower}</span>
           </div>
-          <span className={`ml-auto text-sm ${panelMono} text-gray-500`}>
+          <span className={`ml-auto ${text.meta} ${text.mono}`}>
             {trajectories.length} in tab
           </span>
         </div>
@@ -578,20 +574,20 @@ export default function TrajectoryGenRight({
       {group ? (
         <>
           {/* Table header */}
-          <div className={`flex-shrink-0 flex items-center gap-1 px-3 py-2 bg-gray-800/50 text-sm font-medium text-gray-500 border-b border-gray-700/60 select-none`}>
-            <button className="flex-1 text-left hover:text-gray-300 transition-colors" onClick={() => handleSort('exitVelocity')}>
+          <div className={table.header}>
+            <button className={table.headerCell} onClick={() => handleSort('exitVelocity')}>
               Spd <SortIcon k="exitVelocity" />
             </button>
-            <button className="flex-1 text-left hover:text-gray-300 transition-colors" onClick={() => handleSort('exitAngle')}>
+            <button className={table.headerCell} onClick={() => handleSort('exitAngle')}>
               Exit <SortIcon k="exitAngle" />
             </button>
-            <button className="flex-1 text-left hover:text-gray-300 transition-colors" onClick={() => handleSort('impactAngle')}>
+            <button className={table.headerCell} onClick={() => handleSort('impactAngle')}>
               Impact <SortIcon k="impactAngle" />
             </button>
-            <button className="flex-1 text-left hover:text-gray-300 transition-colors" onClick={() => handleSort('timeOfFlight')}>
+            <button className={table.headerCell} onClick={() => handleSort('timeOfFlight')}>
               ToF <SortIcon k="timeOfFlight" />
             </button>
-            <button className="flex-1 text-left hover:text-gray-300 transition-colors" onClick={() => handleSort('landingError')}>
+            <button className={table.headerCell} onClick={() => handleSort('landingError')}>
               Err <SortIcon k="landingError" />
             </button>
             <div className="w-16" />
@@ -600,7 +596,7 @@ export default function TrajectoryGenRight({
           {/* Trajectory list — fills remaining panel height above bottom controls */}
           <div className="overflow-y-auto flex-1 min-h-0">
             {sorted.length === 0 ? (
-              <div className={`flex flex-col items-center justify-center h-full text-gray-600 ${panelEmpty} px-4`}>
+              <div className={`flex flex-col items-center justify-center h-full ${text.empty} px-4`}>
                 <p>No trajectories in this group.</p>
               </div>
             ) : (
@@ -620,27 +616,30 @@ export default function TrajectoryGenRight({
                 : traj.successfulBracket === false ? 'No bracketing interval found'
                 : null;
 
+              const rowState: TableRowState = isInvalid
+                ? 'invalid'
+                : isMaxMoe
+                ? 'optimal'
+                : isHovered
+                ? 'hovered'
+                : 'default';
+              const errorSign = traj.landingError === null
+                ? 'none'
+                : traj.landingError > 0
+                ? 'over'
+                : traj.landingError < 0
+                ? 'under'
+                : 'exact';
+
               return (
                 <div
                   key={traj.id}
                   onMouseEnter={() => onHoverTraj(traj.id)}
                   onMouseLeave={() => onHoverTraj(null)}
-                  className={`relative flex items-center gap-1 px-3 py-2 border-b transition-colors text-sm group ${
-                    isInvalid
-                      ? isHovered
-                        ? 'bg-red-900/35 border-b-red-900/60 border-l-2 border-l-red-400'
-                        : 'bg-red-950/20 border-b-red-900/40 hover:bg-red-900/25'
-                      : isMaxMoe
-                      ? isHovered
-                        ? 'bg-green-900/40 border-b-gray-800 border-l-2 border-l-green-300'
-                        : 'bg-green-950/30 border-b-gray-800 border-l-2 border-l-green-500'
-                      : isHovered
-                      ? 'bg-blue-900/40 border-b-gray-800 border-l-2 border-l-blue-400'
-                      : 'border-b-gray-800 hover:bg-gray-800/50'
-                  }`}
+                  className={table.row(rowState)}
                 >
                   {isInvalid && isHovered && invalidReason && (
-                    <div className="absolute left-2 -top-7 z-50 px-2 py-1 rounded bg-gray-950 border border-red-800/60 text-red-300 text-sm whitespace-nowrap shadow-lg pointer-events-none">
+                    <div className={`${overlay.tooltip} absolute left-2 -top-7 z-50 whitespace-nowrap`}>
                       {invalidReason}
                     </div>
                   )}
@@ -657,18 +656,16 @@ export default function TrajectoryGenRight({
                         if (e.key === 'Enter') { e.preventDefault(); commitCell(); }
                         if (e.key === 'Escape') { e.preventDefault(); setActiveCell(null); }
                       }}
-                      className={`flex-1 ${panelMono} bg-transparent border-b border-blue-400 text-blue-200 focus:outline-none min-w-0 text-sm`}
+                      className={`${input.inlineCell} flex-1`}
                     />
                   ) : (
                     <span
-                      className={`flex-1 font-mono cursor-text select-none ${
-                        isInvalid ? (isHovered ? 'text-red-300' : 'text-red-400') : (isHovered ? 'text-blue-200' : 'text-white')
-                      }`}
+                      className={`${table.cell(rowState)} cursor-text select-none`}
                       onDoubleClick={e => { e.stopPropagation(); openCell(traj.id, 'exitVelocity', traj.exitVelocity); }}
                     >
                       {traj.exitVelocity.toFixed(3)}
                       {moe && (
-                        <span className={`text-xs ${isMaxMoe ? 'text-green-400' : 'text-gray-500'}`}>
+                        <span className={table.cellAnnotation(rowState)}>
                           {' '}{formatSpeedMoeBounds(moe)}
                         </span>
                       )}
@@ -687,61 +684,45 @@ export default function TrajectoryGenRight({
                         if (e.key === 'Enter') { e.preventDefault(); commitCell(); }
                         if (e.key === 'Escape') { e.preventDefault(); setActiveCell(null); }
                       }}
-                      className={`flex-1 ${panelMono} bg-transparent border-b border-blue-400 text-blue-200 focus:outline-none min-w-0 text-sm`}
+                      className={`${input.inlineCell} flex-1`}
                     />
                   ) : (
                     <span
-                      className={`flex-1 font-mono cursor-text select-none ${
-                        isInvalid ? (isHovered ? 'text-red-300' : 'text-red-500') : (isHovered ? 'text-blue-200' : 'text-gray-300')
-                      }`}
+                      className={`${table.cell(rowState)} cursor-text select-none`}
                       onDoubleClick={e => { e.stopPropagation(); openCell(traj.id, 'exitAngle', traj.exitAngle); }}
                     >
                       {traj.exitAngle.toFixed(2)}°
                       {moe && (
-                        <span className={`text-xs ${isMaxMoe ? 'text-green-400' : 'text-gray-500'}`}>
+                        <span className={table.cellAnnotation(rowState)}>
                           {' '}{formatMoeBounds(moe.angleMoeMinus, moe.angleMoePlus, 2, '°')}
                         </span>
                       )}
                     </span>
                   )}
-                  <span className={`flex-1 font-mono ${
-                    isInvalid ? (isHovered ? 'text-red-300' : 'text-red-500') : (isHovered ? 'text-blue-200' : 'text-gray-300')
-                  }`}>{traj.impactAngle.toFixed(2)}°</span>
-                  <span className={`flex-1 font-mono ${
-                    isInvalid ? (isHovered ? 'text-red-300' : 'text-red-600') : (isHovered ? 'text-blue-300' : 'text-gray-400')
-                  }`}>{traj.timeOfFlight.toFixed(3)}s</span>
-                  <span className={`flex-1 font-mono ${
-                    traj.landingError === null
-                      ? 'text-gray-600'
-                      : isInvalid
-                      ? (isHovered ? 'text-red-300' : 'text-red-600')
-                      : traj.landingError > 0
-                      ? (isHovered ? 'text-orange-300' : 'text-orange-400')
-                      : traj.landingError < 0
-                      ? (isHovered ? 'text-sky-300' : 'text-sky-400')
-                      : (isHovered ? 'text-green-300' : 'text-green-400')
-                  }`}>
+                  <span className={table.cellMuted(rowState)}>{traj.impactAngle.toFixed(2)}°</span>
+                  <span className={table.cellMuted(rowState)}>{traj.timeOfFlight.toFixed(3)}s</span>
+                  <span className={table.cellSigned(errorSign, rowState)}>
                     {traj.landingError === null ? '—' : `${traj.landingError > 0 ? '+' : ''}${traj.landingError.toFixed(2)}mm`}
                   </span>
-                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={table.actions}>
                     <button
                       title="Copy (Ctrl+C)"
                       onClick={(e) => { e.stopPropagation(); handleCopy(traj.id); }}
-                      className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-blue-400 transition-colors rounded"
+                      className={`${button.iconGhost} w-5 h-5`}
                     >
                       <Copy size={11} />
                     </button>
                     <button
                       title="Refine this trajectory (Ctrl+Z)"
                       onClick={(e) => { e.stopPropagation(); handleRefineOne(traj.id); }}
-                      className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-amber-400 transition-colors rounded"
+                      className={`${button.iconGhost} w-5 h-5`}
                     >
                       <RefreshCw size={11} />
                     </button>
                     <button
                       title="Delete"
                       onClick={(e) => { e.stopPropagation(); if (group) onDeleteTraj(group.id, traj.id); }}
-                      className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-red-400 transition-colors rounded"
+                      className={`${button.iconGhostDanger} w-5 h-5`}
                     >
                       <Trash2 size={11} />
                     </button>
@@ -753,7 +734,7 @@ export default function TrajectoryGenRight({
           </div>
         </>
       ) : (
-        <div className={`flex-1 flex items-center justify-center text-gray-600 ${panelEmpty} px-4 min-h-0`}>
+        <div className={`flex-1 flex items-center justify-center ${text.empty} px-4 min-h-0`}>
           <p>Generate trajectories to get started.</p>
         </div>
       )}
@@ -761,11 +742,11 @@ export default function TrajectoryGenRight({
       {/* Bottom utilities */}
       <PanelResizeHandle onDrag={resizeBottomPanel} />
       <div
-        className="flex-shrink-0 min-h-0 overflow-y-auto p-3 space-y-3 border-t border-gray-700"
+        className={layout.panelFooterSectioned}
         style={{ height: bottomPanelHeight }}
       >
             <div className="space-y-2">
-              <h3 className={panelSectionTitle}>Optimal trajectory</h3>
+              <h3 className={text.sectionTitle}>Optimal trajectory</h3>
               <ErrorToleranceInput
                 toleranceValue={params.errorTolerance}
                 goalAngleValue={params.goalPlaneAngleDeg}
@@ -780,15 +761,11 @@ export default function TrajectoryGenRight({
 
             {/* Manage */}
             <div className="space-y-2">
-              <h3 className={panelSectionTitle}>Manage</h3>
+              <h3 className={text.sectionTitle}>Manage</h3>
               <button
                 onClick={onClearAll}
                 disabled={groups.length === 0}
-                className={`w-full ${panelBtnPrimary} ${
-                  groups.length === 0
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-red-900/60 hover:bg-red-800/70 text-red-300 hover:text-red-200'
-                }`}
+                className={`${button.dangerSubtle} ${button.block}`}
               >
                 <XCircle size={14} />
                 Clear All
@@ -796,11 +773,7 @@ export default function TrajectoryGenRight({
               <button
                 onClick={onDeleteUnsuccessful}
                 disabled={unsuccessfulCount === 0}
-                className={`w-full ${panelBtnPrimary} ${
-                  unsuccessfulCount === 0
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-gray-700 hover:bg-gray-600 text-white'
-                }`}
+                className={`${button.secondary} ${button.block}`}
               >
                 <Trash2 size={14} />
                 Delete Unsuccessful
@@ -820,7 +793,7 @@ export default function TrajectoryGenRight({
                 type="button"
                 onClick={handleImportClick}
                 disabled={importing || saving}
-                className={`w-full ${panelBtnPrimary} bg-blue-700 hover:bg-blue-600 text-white disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed`}
+                className={`${button.primary} ${button.block}`}
               >
                 <Upload size={14} />
                 {importing ? 'Importing…' : 'Import'}
@@ -829,11 +802,7 @@ export default function TrajectoryGenRight({
                 type="button"
                 onClick={handleSaveClick}
                 disabled={totalTrajectoryCount === 0 || importing || saving}
-                className={`w-full ${panelBtnPrimary} ${
-                  totalTrajectoryCount === 0 || importing || saving
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-700 hover:bg-blue-600 text-white'
-                }`}
+                className={`${button.primary} ${button.block}`}
               >
                 <Save size={14} />
                 {saving ? 'Saving…' : 'Save'}
@@ -842,11 +811,7 @@ export default function TrajectoryGenRight({
                 type="button"
                 onClick={handleDownload}
                 disabled={totalTrajectoryCount === 0 || saving}
-                className={`w-full ${panelBtnPrimary} ${
-                  totalTrajectoryCount === 0 || saving
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-700 hover:bg-green-600 text-white'
-                }`}
+                className={`${button.positive} ${button.block}`}
               >
                 <Download size={14} />
                 Download
@@ -855,17 +820,13 @@ export default function TrajectoryGenRight({
                 type="button"
                 onClick={handleDownloadJava}
                 disabled={totalTrajectoryCount === 0 || saving}
-                className={`w-full ${panelBtnPrimary} ${
-                  totalTrajectoryCount === 0 || saving
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-700 hover:bg-green-600 text-white'
-                }`}
+                className={`${button.positive} ${button.block}`}
               >
                 <Download size={14} />
                 Download as Java file
               </button>
               {importStatus && (
-                <p className={`text-sm ${importStatus.ok === true ? 'text-green-400' : importStatus.ok === false ? 'text-red-400' : 'text-gray-400'}`}>
+                <p className={feedback.status(importStatus.ok)}>
                   {importStatus.text}
                 </p>
               )}

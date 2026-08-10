@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, type ReactNode } from 'react';
-import { panelItemTitle } from './panelStyles';
+import { overlay, text } from '../styles/theme';
 
 interface Props {
   title: string;
@@ -87,19 +87,17 @@ export default function DraggablePanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`absolute pointer-events-auto ${widthClass} rounded-xl border border-gray-600 bg-gray-900/95 p-3 shadow-xl backdrop-blur-sm ${
-          ready ? '' : 'invisible'
-        }`}
+        className={`${overlay.floatingPanel} ${widthClass} ${ready ? '' : 'invisible'}`}
         style={{ left: pos.x, top: pos.y }}
       >
         <div
-          className={`select-none touch-none ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+          className={`${overlay.floatingHandle} ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
           onMouseDown={onDragStart}
         >
-          <h2 id={titleId} className={`${panelItemTitle} text-sm`}>
+          <h2 id={titleId} className={`${text.itemTitle} text-sm`}>
             {title}
           </h2>
-          <p className="text-[10px] text-gray-500 mt-0.5 mb-2">Drag header to move</p>
+          <p className={`${text.metaFine} mt-0.5 mb-2`}>Drag header to move</p>
         </div>
         {children}
       </div>

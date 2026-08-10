@@ -17,6 +17,8 @@ import { MeterstickScale, defaultMeterstickPoints, scaleToPpmFn, horizontalizeMe
 import { extractFrameTimestamps } from './utils/extractFrameTimestamps';
 import { applyExtractedFrameTiming } from './utils/frameTiming';
 import { loadProjectFromDir } from './utils/projectIO';
+import { layout, text, tab as tabStyle, chrome, brand } from './styles/theme';
+import ThemeToggle from './components/ThemeToggle';
 
 const LEFT_MIN = 160;
 const LEFT_MAX = 480;
@@ -135,18 +137,14 @@ const DEFAULT_TRAJGEN_PARAMS: TrajGenParams = {
 };
 
 function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.MouseEvent) => void }) {
-  const [hovered, setHovered] = useState(false);
   return (
     <div
-      className="relative flex-shrink-0 w-1 cursor-col-resize h-full select-none"
+      role="separator"
+      aria-orientation="vertical"
+      className={`${chrome.resizeHandle} relative w-1 cursor-col-resize h-full`}
       onMouseDown={onMouseDown}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
-      <div
-        className="absolute inset-0 transition-colors duration-150"
-        style={{ background: hovered ? 'rgba(59,130,246,0.6)' : 'rgba(55,65,81,1)' }}
-      />
+      <div className={`${chrome.resizeGrip} absolute inset-0`} />
     </div>
   );
 }
@@ -838,25 +836,23 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-white overflow-hidden">
+    <div className={layout.appShell}>
       {/* Header */}
-      <header className="flex-shrink-0 bg-gray-900 border-b border-gray-700 px-6 pt-3.5 pb-0">
+      <header className={layout.headerBar}>
         <div className="flex items-end justify-between">
-          <h1 className="text-xl font-bold tracking-tight pb-3">
-            <span style={{ color: '#4a7fd4' }}>Brain</span><span style={{ color: '#3cb54a' }}>S</span><span style={{ color: '#4a7fd4' }}>T</span><span style={{ color: '#e04020' }}>E</span><span style={{ color: '#e8b020' }}>M</span><span style={{ color: '#4a7fd4' }}> Shooting Simulator</span>
-       
-          </h1>
+          <div className="flex items-center gap-3 pb-3">
+            <h1 className={text.appTitle}>
+              <span style={{ color: brand.blue }}>Brain</span><span style={{ color: brand.green }}>S</span><span style={{ color: brand.blue }}>T</span><span style={{ color: brand.red }}>E</span><span style={{ color: brand.gold }}>M</span><span style={{ color: brand.blue }}> Shooting Simulator</span>
+            </h1>
+            <ThemeToggle />
+          </div>
           {/* Tabs */}
-          <div className="flex items-end gap-1">
+          <div className={tabStyle.pageBar}>
             {(['sysid', 'trajgen'] as Tab[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors border-t border-l border-r ${
-                  tab === t
-                    ? 'bg-gray-950 border-gray-700 text-white'
-                    : 'bg-gray-800/50 border-transparent text-gray-400 hover:text-gray-200 hover:bg-gray-800'
-                }`}
+                className={tabStyle.page(tab === t)}
               >
                 {t === 'sysid' ? 'System Identification' : 'Trajectory Generation'}
               </button>
@@ -935,7 +931,7 @@ export default function App() {
               <button
                 onClick={() => setLeftOpen((v) => !v)}
                 title={leftOpen ? 'Hide sidebar' : 'Show sidebar'}
-                className="absolute top-1/2 -translate-y-1/2 left-0 z-20 flex items-center justify-center w-5 h-10 bg-gray-800 hover:bg-gray-600 border border-gray-600 rounded-r-md text-gray-400 hover:text-white transition-colors"
+                className={`${chrome.collapseToggle} left-0 rounded-r-md`}
               >
                 {leftOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
               </button>
@@ -979,7 +975,10 @@ export default function App() {
                   onStopFrameHold={handleStopFrameHold}
                 />
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center gap-10">
+                /* No video loaded yet — a normal light empty state, not the
+                   black video stage. The stage only goes black once there is
+                   footage to letterbox. */
+                <div className={chrome.emptyStage}>
                   <input
                     ref={centerUploadRef}
                     type="file"
@@ -1003,23 +1002,23 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => centerUploadRef.current?.click()}
-                      className="w-16 h-16 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-300 transition-colors flex items-center justify-center"
+                      className={chrome.emptyAction}
                       title="Upload video"
                     >
                       <Upload size={32} strokeWidth={1.5} />
                     </button>
-                    <p className="text-sm font-medium text-gray-500">Upload a video to get started</p>
+                    <p className={text.body}>Upload a video to get started</p>
                   </div>
                   <div className="flex flex-col items-center gap-3">
                     <button
                       type="button"
                       onClick={() => importProjectActionRef.current?.()}
-                      className="w-16 h-16 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-300 transition-colors flex items-center justify-center"
+                      className={chrome.emptyAction}
                       title="Import project"
                     >
                       <FolderDown size={32} strokeWidth={1.5} />
                     </button>
-                    <p className="text-sm font-medium text-gray-500">Or import a project</p>
+                    <p className={text.body}>Or import a project</p>
                   </div>
                 </div>
               )}
@@ -1032,7 +1031,7 @@ export default function App() {
               <button
                 onClick={() => setRightOpen((v) => !v)}
                 title={rightOpen ? 'Hide panel' : 'Show panel'}
-                className="absolute top-1/2 -translate-y-1/2 right-0 z-20 flex items-center justify-center w-5 h-10 bg-gray-800 hover:bg-gray-600 border border-gray-600 rounded-l-md text-gray-400 hover:text-white transition-colors"
+                className={`${chrome.collapseToggle} right-0 rounded-l-md`}
               >
                 {rightOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
               </button>
@@ -1120,7 +1119,7 @@ export default function App() {
               <button
                 onClick={() => setLeftOpen((v) => !v)}
                 title={leftOpen ? 'Hide panel' : 'Show panel'}
-                className="absolute top-1/2 -translate-y-1/2 left-0 z-20 flex items-center justify-center w-5 h-10 bg-gray-800 hover:bg-gray-600 border border-gray-600 rounded-r-md text-gray-400 hover:text-white transition-colors"
+                className={`${chrome.collapseToggle} left-0 rounded-r-md`}
               >
                 {leftOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
               </button>
@@ -1155,7 +1154,7 @@ export default function App() {
               <button
                 onClick={() => setRightOpen((v) => !v)}
                 title={rightOpen ? 'Hide panel' : 'Show panel'}
-                className="absolute top-1/2 -translate-y-1/2 right-0 z-20 flex items-center justify-center w-5 h-10 bg-gray-800 hover:bg-gray-600 border border-gray-600 rounded-l-md text-gray-400 hover:text-white transition-colors"
+                className={`${chrome.collapseToggle} right-0 rounded-l-md`}
               >
                 {rightOpen ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
               </button>

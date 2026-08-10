@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { overlay, plotPalette, text } from '../styles/theme';
+import { useThemeMode } from '../styles/themeMode';
 
 export interface DualAxisPoint {
   dx: number;
@@ -56,10 +58,6 @@ interface PlotLayout {
   xMin: number;
   xMax: number;
 }
-
-export const DUAL_AXIS_LEFT_COLOR = '#60a5fa';
-export const DUAL_AXIS_LEFT_EXTRA_COLOR = '#93c5fd';
-export const DUAL_AXIS_RIGHT_COLOR = '#34d399';
 
 function niceStep(range: number, targetTicks: number): number {
   if (range <= 0) return 1;
@@ -130,10 +128,10 @@ export default function DualAxisDistanceChart({
   leftAxisTitle,
   rightAxisTitle,
   xAxisTitle = 'Distance from goal (m)',
-  leftColor = DUAL_AXIS_LEFT_COLOR,
-  rightColor = DUAL_AXIS_RIGHT_COLOR,
+  leftColor,
+  rightColor,
   leftExtraLegend,
-  leftExtraColor = DUAL_AXIS_LEFT_EXTRA_COLOR,
+  leftExtraColor,
   yAxisFromZero = false,
   showZeroLine = false,
   hideRightAxis = false,
@@ -169,12 +167,18 @@ export default function DualAxisDistanceChart({
   } | null>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const [dragPoint, setDragPoint] = useState<DualAxisPoint | null>(null);
+  const themeMode = useThemeMode();
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const plot = plotPalette(themeMode);
+    const leftInk = leftColor ?? plot.seriesPrimary;
+    const rightInk = rightColor ?? plot.seriesSecondary;
+    const leftExtraInk = leftExtraColor ?? plot.seriesPrimaryAlt;
 
     const dpr = window.devicePixelRatio || 1;
     const cssW = canvas.clientWidth;
@@ -249,10 +253,10 @@ export default function DualAxisDistanceChart({
       plotH,
     };
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = plot.grid;
     ctx.lineWidth = gridLineWidth;
     ctx.font = tickFont;
-    ctx.fillStyle = 'rgba(156,163,175,0.75)';
+    ctx.fillStyle = plot.axisLabel;
     ctx.textBaseline = 'middle';
 
     for (let v = leftRange.min; v <= leftRange.max + leftStep * 0.001; v += leftStep) {
@@ -278,17 +282,17 @@ export default function DualAxisDistanceChart({
     ctx.textBaseline = 'top';
     for (let x = xTick0; x <= xMax + xStep * 0.001; x += xStep) {
       const sx = toX(x);
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.strokeStyle = plot.grid;
       ctx.beginPath();
       ctx.moveTo(sx, padT);
       ctx.lineTo(sx, padT + plotH);
       ctx.stroke();
-      ctx.fillStyle = 'rgba(156,163,175,0.75)';
+      ctx.fillStyle = plot.axisLabel;
       ctx.textAlign = 'center';
       ctx.fillText(formatTick(x), sx, padT + plotH + pad.tickGap);
     }
 
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.strokeStyle = plot.axis;
     ctx.lineWidth = axisLineWidth;
     ctx.beginPath();
     ctx.moveTo(padL, padT);
@@ -299,7 +303,7 @@ export default function DualAxisDistanceChart({
 
     if (showZeroLine && leftRange.min <= 0 && leftRange.max >= 0) {
       const zy = toLeftY(0);
-      ctx.strokeStyle = `${leftColor}40`;
+      ctx.strokeStyle = plot.zeroLine;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
       ctx.moveTo(padL, zy);
@@ -339,7 +343,7 @@ export default function DualAxisDistanceChart({
         ctx.fillStyle = color;
         ctx.fill();
         if (hovered) {
-          ctx.strokeStyle = '#fff';
+          ctx.strokeStyle = plot.pointStroke;
           ctx.lineWidth = 1.5 * uiScale;
           ctx.stroke();
         }
@@ -352,14 +356,14 @@ export default function DualAxisDistanceChart({
       for (const bar of rangeBars) {
         const x = toX(bar.dx);
         if (bar.leftMin !== undefined && bar.leftMax !== undefined) {
-          ctx.strokeStyle = '#1e3a8a';
+          ctx.strokeStyle = plot.seriesPrimarySpread;
           ctx.beginPath();
           ctx.moveTo(x - 2 * uiScale, toLeftY(bar.leftMin));
           ctx.lineTo(x - 2 * uiScale, toLeftY(bar.leftMax));
           ctx.stroke();
         }
         if (!hideRightAxis && bar.rightMin !== undefined && bar.rightMax !== undefined) {
-          ctx.strokeStyle = '#14532d';
+          ctx.strokeStyle = plot.seriesSecondarySpread;
           ctx.beginPath();
           ctx.moveTo(x + 2 * uiScale, toRightY(bar.rightMin));
           ctx.lineTo(x + 2 * uiScale, toRightY(bar.rightMax));
@@ -369,13 +373,15 @@ export default function DualAxisDistanceChart({
       ctx.lineCap = 'butt';
     }
 
-    drawSeries(leftColor, toLeftY, 'left');
+    drawSeries(leftInk, toLeftY, 'left');
     if (hasLeftExtra) {
-      drawSeries(leftExtraColor, toLeftY, 'leftExtra');
+      drawSeries(leftExtraInk, toLeftY, 'leftExtra');
     }
 
     if (overlayLine) {
-      const color = overlayLine.color ?? '#fbbf24';
+      const color = overlayLine.color
+        ? overlayLine.color
+        : plot.referenceLine;
       const lx1 = toX(overlayLine.x1);
       const ly1 = toLeftY(overlayLine.y1);
       const lx2 = toX(overlayLine.x2);
@@ -393,7 +399,7 @@ export default function DualAxisDistanceChart({
         ctx.arc(x, y, 6 * uiScale, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
-        ctx.strokeStyle = '#111827';
+        ctx.strokeStyle = plot.markerOutline;
         ctx.lineWidth = 2 * uiScale;
         ctx.stroke();
       }
@@ -402,37 +408,37 @@ export default function DualAxisDistanceChart({
     ctx.font = legendFont;
     ctx.textBaseline = 'middle';
     if (hasLeftExtra && leftExtraLegend) {
-      ctx.fillStyle = leftColor;
+      ctx.fillStyle = leftInk;
       ctx.textAlign = 'left';
       ctx.fillText(leftLegend, padL, pad.legendY);
-      ctx.fillStyle = leftExtraColor;
+      ctx.fillStyle = leftExtraInk;
       ctx.fillText(leftExtraLegend, padL, pad.legendY + Math.round(14 * uiScale));
     } else {
-      ctx.fillStyle = leftColor;
+      ctx.fillStyle = leftInk;
       ctx.textAlign = 'left';
       ctx.fillText(leftLegend, padL, pad.legendY);
     }
     if (!hideRightAxis) {
-      ctx.fillStyle = rightColor;
+      ctx.fillStyle = rightInk;
       ctx.textAlign = 'right';
       ctx.fillText(rightLegend, padL + plotW, pad.legendY);
     }
 
     if (!hideRightAxis) {
-      drawSeries(rightColor, toRightY, 'right');
+      drawSeries(rightInk, toRightY, 'right');
     }
 
     if (dragPoint) {
       const x = toX(dragPoint.dx);
       ctx.lineWidth = 2 * uiScale;
-      ctx.strokeStyle = '#ffffff';
-      ctx.fillStyle = leftColor;
+      ctx.strokeStyle = plot.pointStroke;
+      ctx.fillStyle = leftInk;
       ctx.beginPath();
       ctx.arc(x, toLeftY(dragPoint.left), 6 * uiScale, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       if (!hideRightAxis) {
-        ctx.fillStyle = rightColor;
+        ctx.fillStyle = rightInk;
         ctx.beginPath();
         ctx.arc(x, toRightY(dragPoint.right), 6 * uiScale, 0, Math.PI * 2);
         ctx.fill();
@@ -444,7 +450,7 @@ export default function DualAxisDistanceChart({
     ctx.translate(pad.axisTitleInset, padT + plotH / 2);
     ctx.rotate(-Math.PI / 2);
     ctx.textAlign = 'center';
-    ctx.fillStyle = 'rgba(156,163,175,0.85)';
+    ctx.fillStyle = plot.axisTitle;
     ctx.font = axisTitleFont;
     ctx.fillText(leftAxisTitle, 0, 0);
     ctx.restore();
@@ -454,7 +460,7 @@ export default function DualAxisDistanceChart({
       ctx.translate(cssW - pad.axisTitleInset, padT + plotH / 2);
       ctx.rotate(Math.PI / 2);
       ctx.textAlign = 'center';
-      ctx.fillStyle = 'rgba(156,163,175,0.85)';
+      ctx.fillStyle = plot.axisTitle;
       ctx.font = axisTitleFont;
       ctx.fillText(rightAxisTitle, 0, 0);
       ctx.restore();
@@ -462,7 +468,7 @@ export default function DualAxisDistanceChart({
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.fillStyle = 'rgba(156,163,175,0.85)';
+    ctx.fillStyle = plot.axisTitle;
     ctx.font = axisTitleFont;
     ctx.fillText(xAxisTitle, padL + plotW / 2, cssH - pad.xTitleBottom);
   }, [
@@ -483,6 +489,7 @@ export default function DualAxisDistanceChart({
     rangeBars,
     overlayLine,
     dragPoint,
+    themeMode,
   ]);
 
   useEffect(() => { draw(); }, [draw]);
@@ -704,7 +711,7 @@ export default function DualAxisDistanceChart({
 
   if (points.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-gray-500 px-6 text-center leading-relaxed">
+      <div className={`flex items-center justify-center h-full px-6 ${text.empty}`}>
         {emptyMessage ?? 'No data to display.'}
       </div>
     );
@@ -723,7 +730,7 @@ export default function DualAxisDistanceChart({
         onPointerCancel={handlePointerUp}
       />
       {hoverPoint && renderTooltip && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none px-3 py-2 rounded bg-gray-900 border border-gray-600 text-xs shadow-lg tabular-nums space-y-0.5">
+        <div className={`absolute top-3 left-1/2 -translate-x-1/2 z-10 ${overlay.tooltip}`}>
           {renderTooltip(hoverPoint)}
         </div>
       )}
