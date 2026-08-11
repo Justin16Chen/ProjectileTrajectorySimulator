@@ -8,8 +8,24 @@
     <meta property="og:image" content="https://bolt.new/static/og_default.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
-    <script type="module" crossorigin src="/OffboardShooting/assets/index-BlDux31w.js"></script>
-    <link rel="stylesheet" crossorigin href="/OffboardShooting/assets/index-DhioAuBI.css">
+    <script>
+      /* Apply the saved theme before first paint so a dark reload never flashes
+         white. Keep the key and class in sync with src/styles/themeMode.ts. */
+      (function () {
+        try {
+          var stored = localStorage.getItem('shooting-sim-theme');
+          var dark =
+            stored === 'dark' ||
+            (stored !== 'light' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          /* Storage blocked — fall back to the light default. */
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/OffboardShooting/assets/index-BmGNoykf.js"></script>
+    <link rel="stylesheet" crossorigin href="/OffboardShooting/assets/index-DZeT_s8g.css">
   </head>
   <body>
     <div id="root"></div>
