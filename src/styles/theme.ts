@@ -584,7 +584,7 @@ export const plotColors = {
   seriesSecondarySpread: 'rgba(160, 90, 36, 0.18)',
 
   /** One candidate trajectory among many. */
-  candidate: 'rgba(20, 23, 26, 0.13)',
+  candidate: 'rgba(20, 23, 26, 0.22)',
   /** The candidate under the cursor. */
   candidateHovered: '#3A5A6E',
   /** Optimal / best-margin-of-error trajectory. */
@@ -628,7 +628,7 @@ export const plotColorsDark: PlotPalette = {
   seriesPrimarySpread: 'rgba(126, 168, 196, 0.22)',
   seriesSecondarySpread: 'rgba(216, 154, 98, 0.22)',
 
-  candidate: 'rgba(237, 239, 242, 0.14)',
+  candidate: 'rgba(237, 239, 242, 0.23)',
   candidateHovered: '#A8C2D4',
   optimal: '#5FBE85',
   optimalSelected: '#8FD9AD',
